@@ -1,4 +1,4 @@
-import 'package:namer_app/MainPage.dart';
+import 'package:namer_app/PostList.dart';
 import 'package:flutter/material.dart';
 
 
@@ -97,7 +97,7 @@ class _LoginPageState extends State<LoginPage> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => MainPage()),
+                    MaterialPageRoute(builder: (context) => DestinationListPage()),
                   );
                 },
                 color: Color(0xAA3A5BDA),
