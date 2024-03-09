@@ -5,7 +5,7 @@ class Post {
   final String date;
   final String fromCity;
   final String toCity;
-  final int? peopleAmount; // Update type to int?
+  final int? peopleAmount;
   final double priceAmount;
 
   Post({
@@ -28,7 +28,7 @@ class _PostCreationPageState extends State<PostCreationPage> {
   late TextEditingController fromCityController;
   late TextEditingController toCityController;
   late TextEditingController dateController;
-  int? selectedPeopleAmount; // Update type to int?
+  int? selectedPeopleAmount;
   late TextEditingController priceController;
 
   late List<Post> posts;
@@ -95,39 +95,59 @@ class _PostCreationPageState extends State<PostCreationPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromRGBO(255, 255, 255, 1),
-                  ).copyWith(backgroundColor: MaterialStateProperty.all<Color>(Color.fromRGBO(255, 255, 255, 1))),
-                  child: Icon(Icons.close, color: Colors.red),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SizedBox(
+                    width: 80.0,
+                    height: 50.0,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                      ).copyWith(
+                        backgroundColor: MaterialStateProperty.all<Color>(Color.fromRGBO(255, 255, 255, 1)),
+                        padding: MaterialStateProperty.all<EdgeInsetsGeometry>(EdgeInsets.all(8.0)),
+                        alignment: Alignment.center,
+                      ),
+                      child: Icon(Icons.close, color: Colors.red),
+                    ),
+                  ),
                 ),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      posts.add(
-                        Post(
-                          description: descriptionController.text,
-                          date: dateController.text,
-                          fromCity: fromCityController.text,
-                          toCity: toCityController.text,
-                          peopleAmount: selectedPeopleAmount,
-                          priceAmount: double.tryParse(priceController.text) ?? 0.0,
-                        ),
-                      );
-                      fromCityController.clear();
-                      toCityController.clear();
-                      dateController.clear();
-                      priceController.clear();
-                      descriptionController.clear();
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromRGBO(255, 255, 255, 1),
-                  ).copyWith(backgroundColor: MaterialStateProperty.all<Color>(Color.fromRGBO(255, 255, 255, 1))),
-                  child: Icon(Icons.check, color: Colors.green),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SizedBox(
+                    width: 80.0,
+                    height: 50.0,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          posts.add(
+                            Post(
+                              description: descriptionController.text,
+                              date: dateController.text,
+                              fromCity: fromCityController.text,
+                              toCity: toCityController.text,
+                              peopleAmount: selectedPeopleAmount,
+                              priceAmount: double.tryParse(priceController.text) ?? 0.0,
+                            ),
+                          );
+                          fromCityController.clear();
+                          toCityController.clear();
+                          dateController.clear();
+                          priceController.clear();
+                          descriptionController.clear();
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                      ).copyWith(
+                        backgroundColor: MaterialStateProperty.all<Color>(Color.fromRGBO(255, 255, 255, 1)),
+                        padding: MaterialStateProperty.all<EdgeInsetsGeometry>(EdgeInsets.all(8.0)),
+                        alignment: Alignment.center,
+                      ),
+                      child: Icon(Icons.check, color: Colors.green),
+                    ),
+                  ),
                 ),
               ],
             ),
