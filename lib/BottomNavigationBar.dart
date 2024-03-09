@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:namer_app/PostList.dart';
+import 'package:namer_app/CreatePost.dart';
 
 class MyBottomNavigationBar extends StatelessWidget {
   @override
@@ -55,7 +56,7 @@ class MyBottomNavigationBar extends StatelessWidget {
               break;
             case 2:
               //Create Post
-              Navigator.pushReplacementNamed(context, '/create');
+              Navigator.push(context,MaterialPageRoute(builder: (context) => PostCreationPage()));
               break;
             case 3:
               //Add people
