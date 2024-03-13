@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:page_transition/page_transition.dart';
-import 'package:namer_app/LoginPage.dart';
+import 'LoginPage.dart';
 
 void main() => runApp(
       MaterialApp(
@@ -9,69 +8,37 @@ void main() => runApp(
       ),
     );
 
-class HomePage extends StatefulWidget {
-  @override
-  _HomePageState createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
-
-  bool hideIcon = false;
-
-
+class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final double width = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      backgroundColor: Color.fromRGBO(131, 150, 194, 1),
+      backgroundColor: Color.fromRGBO(128, 0, 0, 1),
       body: SizedBox(
         width: double.infinity,
-        child: Stack(
+        child: Column(
           children: <Widget>[
-            Positioned(
-              top: -50,
-              left: 0,
-              child: Container(
-                width: width,
-                height: 400,
-            
-              ),
-            ),
-            Positioned(
-              top: -100,
-              left: 0,
-              child: Container(
-                width: width,
-                height: 400,
-  
-              ),
-            ),
-            Positioned(
-              top: -150,
-              left: 0,
-              child: Container(
-                width: width,
-                height: 400,
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage('assets/images/one.png'),
-                    fit: BoxFit.cover,
-                  ),
+            Container(
+              width: width,
+              height: 450,
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/images/logo.png'),
+                  fit: BoxFit.cover,
                 ),
               ),
             ),
-            Container(
-              padding: EdgeInsets.all(20.0),
+            Padding(
+              padding: const EdgeInsets.all(20.0),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
                     "Welcome",
                     style: TextStyle(color: Colors.white, fontSize: 50),
                   ),
-                  SizedBox(height: 15,),
+                  SizedBox(height: 15),
                   Text(
                     "We promise that you'll have the most \nfuss-free time with us ever.",
                     style: TextStyle(
@@ -79,10 +46,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         height: 1.4,
                         fontSize: 20),
                   ),
-                  SizedBox(height: 180,),
-                  Center(
-                    child: Container(
-                      child: InkWell(
+                  SizedBox(height: 60),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      InkWell(
                         onTap: () {
                           Navigator.push(
                             context,
@@ -94,7 +62,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           height: 60,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Color.fromARGB(255, 7, 37, 78),
+                            color: Color.fromRGBO(190, 14, 14, 1),
                           ),
                           child: Icon(
                             Icons.arrow_forward,
@@ -102,12 +70,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                  SizedBox(height: 60,),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),

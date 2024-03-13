@@ -1,51 +1,35 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'RegistrationPage.dart';
-import 'PostList.dart';
+import 'LoginPage.dart';
 
-class LoginPage extends StatefulWidget {
+class RegisterPage extends StatefulWidget {
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _RegisterPageState extends State<RegisterPage> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   bool isPasswordVisible = false;
   bool _isNotValidate = false;
   bool _isHovering = false;
 
-  Future<void> loginUser() async {
+  void registerUser() async {
     if (emailController.text.isNotEmpty && passwordController.text.isNotEmpty) {
-      var loginData = {
+      var regBody = {
         "email": emailController.text,
         "password": passwordController.text
       };
 
       var response = await http.post(
-        Uri.parse('http://localhost:3000/login'),
+        Uri.parse('http://localhost:3000/register'),
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode(loginData),
+        body: jsonEncode(regBody),
       );
 
-      // Process response
-      if (response.statusCode == 200) {
-        // Login successful, extract token from response
-        var data = jsonDecode(response.body);
-        var token = data['token'];
-        
-        // You can save this token to use for future authenticated requests
-        print('Login successful, Token: $token');
-
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => DestinationListPage()),
-        );
-      } else {
-        // Login failed, display error message
-        print('Login failed: ${response.body}');
-      }
+      print('Server response: ${response.statusCode}');
+      print('Response body: ${response.body}');
     } else {
       setState(() {
         _isNotValidate = true;
@@ -64,7 +48,7 @@ class _LoginPageState extends State<LoginPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              "Let's sign you in.",
+              "Let's register.",
               style: TextStyle(
                   color: Colors.white,
                   fontSize: 30,
@@ -145,22 +129,23 @@ class _LoginPageState extends State<LoginPage> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => RegisterPage()),
+                    MaterialPageRoute(builder: (context) => LoginPage()),
                   );
                 },
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "Don't have an account?",
+                      "Already have an account?",
                       style: TextStyle(
-                        color: _isHovering ? Colors.blue : Color.fromARGB(255, 71, 114, 200),
+                        color: _isHovering ? Colors.blue : Color(0xFF5C5F65),
                         fontWeight: _isHovering ? FontWeight.bold : FontWeight.normal,
+                        fontSize: _isHovering ? 18.0 : 16.0,
                       ),
                     ),
                     SizedBox(width: 6,),
                     Text(
-                      "Register",
+                      "Login",
                       style: TextStyle(
                         color: _isHovering ? Colors.blue : Colors.blue,
                         fontWeight: _isHovering ? FontWeight.bold : FontWeight.normal,
@@ -174,7 +159,15 @@ class _LoginPageState extends State<LoginPage> {
             SizedBox(height: 20,),
             Center(
               child: MaterialButton(
-                onPressed: loginUser,
+                onPressed: () {
+                  registerUser();
+                  if (!_isNotValidate) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => LoginPage()),
+                    );
+                  }
+                },
                 color: Color(0xAA3A5BDA),
                 padding: EdgeInsets.all(16),
                 shape: RoundedRectangleBorder(
@@ -182,7 +175,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 child: Center(
                   child: Text(
-                    "Login",
+                    "Register",
                     style: TextStyle(
                       color: Colors.white.withOpacity(.7),
                       fontSize: 16,
