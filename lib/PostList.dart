@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'BottomNavigationBar.dart';
+import 'PostReview.dart';
 
 class Destination {
   final String fromCity;
@@ -7,6 +8,7 @@ class Destination {
   final String date;
   final int peopleAmount;
   final double priceAmount;
+  final String postComment;
 
   Destination({
     required this.fromCity,
@@ -14,6 +16,7 @@ class Destination {
     required this.date,
     required this.peopleAmount,
     required this.priceAmount,
+    required this.postComment
   });
 }
 
@@ -33,9 +36,9 @@ class _DestinationListPageState extends State<DestinationListPage> {
   void initState() {
     super.initState();
     trips = [
-      Destination(fromCity: 'Vilnius', toCity: 'Kaunas', date: '2024-07-01', peopleAmount: 3, priceAmount: 10),
-      Destination(fromCity: 'Kaunas', toCity: 'Klaipėda', date: '2024-07-02', peopleAmount: 4, priceAmount: 20),
-      Destination(fromCity: 'Klaipėda', toCity: 'Vilnius', date: '2024-07-03', peopleAmount: 2, priceAmount: 15),
+      Destination(fromCity: 'Vilnius', toCity: 'Kaunas', date: '2024-07-01', peopleAmount: 3, priceAmount: 10, postComment: 'Cool'),
+      Destination(fromCity: 'Kaunas', toCity: 'Klaipėda', date: '2024-07-02', peopleAmount: 4, priceAmount: 20, postComment: 'Awsome'),
+      Destination(fromCity: 'Klaipėda', toCity: 'Vilnius', date: '2024-07-03', peopleAmount: 2, priceAmount: 15, postComment: 'Oke'),
     ];
     filteredTrips = List.from(trips);
   }
@@ -164,7 +167,7 @@ void _showFilterDialog() {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.location_on, color: Colors.black),
+                          Icon(Icons.location_city, color: Colors.black),
                           SizedBox(width: 8.0),
                           Text('${filteredTrips[index].fromCity}'),
                         ],
@@ -199,15 +202,21 @@ void _showFilterDialog() {
               ),
               onTap: () {
                 print('Selected destination: ${filteredTrips[index].toCity}');
-              },
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => DestinationDetailPage(destination: filteredTrips[index]),
+                ),
+              );
+            },
             ),
             //---Post List -END- ---//
           );
         },
       ),
-      //---Post List -BEGIN- ---//
+      //--- Bottom Navigation -BEGIN- ---//
       bottomNavigationBar: MyBottomNavigationBar(),
-      //---Post List -END- ---//
+      //--- Bottom Navigation -END- ---//
     );
   }
 }
