@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:namer_app/PostList.dart';
 import 'package:namer_app/CreatePost.dart';
+import 'package:namer_app/ProfilePage.dart';
 
 class MyBottomNavigationBar extends StatelessWidget {
   @override
@@ -49,26 +50,35 @@ class MyBottomNavigationBar extends StatelessWidget {
             case 0:
               //Home
               Navigator.push(context,MaterialPageRoute(builder: (context) => DestinationListPage()));
-              break;
             case 1:
               //Chat
               Navigator.pushReplacementNamed(context, '/chat');
-              break;
             case 2:
               //Create Post
               Navigator.push(context,MaterialPageRoute(builder: (context) => PostCreationPage()));
-              break;
             case 3:
               //Add people
               Navigator.pushReplacementNamed(context, '/car_crash');
-              break;
             case 4:
               //Profile
-              Navigator.pushReplacementNamed(context, '/person');
-              break;
+              Navigator.push(context,MaterialPageRoute(builder: (context) => 
+              ProfilePage(profile: myProfile),),);
           }
         },
     ),
     );
   }
+
+//--- Temporary Profile Data -BEGIN- ---//
+  Profile myProfile = Profile(
+  profilePhotoUrl: 'https://via.placeholder.com/150',
+  username: 'user123',
+  firstName: 'John',
+  lastName: 'Doe',
+  // email: 'john.doe@example.com',
+  // phoneNumber: '123-456-7890',
+  carNumber: 'ABC123',
+  rating: 4.5,
+);
+//--- Temporary Profile Data -END- ---//
 }
