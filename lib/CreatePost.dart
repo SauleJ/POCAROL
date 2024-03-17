@@ -1,48 +1,81 @@
 import 'package:flutter/material.dart';
-
-class Post {
-  final String description;
-  final String date;
-  final String fromCity;
-  final String toCity;
-  final int? peopleAmount;
-  final double priceAmount;
-
-  Post({
-    required this.description,
-    required this.date,
-    required this.fromCity,
-    required this.toCity,
-    required this.peopleAmount,
-    required this.priceAmount,
-  });
-}
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'LoginPage.dart';
 
 class PostCreationPage extends StatefulWidget {
+
+
   @override
   _PostCreationPageState createState() => _PostCreationPageState();
 }
 
 class _PostCreationPageState extends State<PostCreationPage> {
-  late TextEditingController descriptionController;
-  late TextEditingController fromCityController;
-  late TextEditingController toCityController;
-  late TextEditingController dateController;
+  TextEditingController descriptionController = TextEditingController();
+  TextEditingController fromCityController = TextEditingController();
+  TextEditingController toCityController = TextEditingController();
+  TextEditingController dateController = TextEditingController();
   int? selectedPeopleAmount;
-  late TextEditingController priceController;
+  TextEditingController priceController = TextEditingController();
 
-  late List<Post> posts;
+  //////////////////Sending to backend//////////////
 
-  @override
-  void initState() {
-    super.initState();
-    descriptionController = TextEditingController();
-    fromCityController = TextEditingController();
-    toCityController = TextEditingController();
-    dateController = TextEditingController();
-    priceController = TextEditingController();
-    posts = [];
+  void createPost() async {
+    if(descriptionController.text.isNotEmpty && fromCityController.text.isNotEmpty && toCityController.text.isNotEmpty && dateController.text.isNotEmpty && priceController.text.isNotEmpty ){
+        
+      Map<String, String> regBody = {
+      "description": descriptionController.text,
+      "date": dateController.text,
+      "fromCity": fromCityController.text,
+      "toCity": toCityController.text,
+      "peopleAmount": selectedPeopleAmount.toString(),
+      "priceAmount": priceController.text,
+    };
+
+    // Check if globalToken is not null, then include it in the request body
+    if (globalToken != null) {
+      regBody['token'] = globalToken!;
+    }
+
+
+    var response = await http.post(
+      Uri.parse('http://localhost:3000/savePost'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(regBody),
+    );
+
+    var jsonResponse = jsonDecode(response.body);
+
+    print(jsonResponse['status']);
+
+    if (jsonResponse['status']) {
+      print('Post created successfully');
+      
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("Post Created"),
+            content: Text("You have created a post."),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop();
+                },
+                child: Text("OK"),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      print('Error creating post');
+    }
+    }
   }
+
+  ///////////////////////////////////////////////////
 
   Widget build(BuildContext context) {
     return Scaffold(
@@ -122,21 +155,7 @@ class _PostCreationPageState extends State<PostCreationPage> {
                     child: ElevatedButton(
                       onPressed: () {
                         setState(() {
-                          posts.add(
-                            Post(
-                              description: descriptionController.text,
-                              date: dateController.text,
-                              fromCity: fromCityController.text,
-                              toCity: toCityController.text,
-                              peopleAmount: selectedPeopleAmount,
-                              priceAmount: double.tryParse(priceController.text) ?? 0.0,
-                            ),
-                          );
-                          fromCityController.clear();
-                          toCityController.clear();
-                          dateController.clear();
-                          priceController.clear();
-                          descriptionController.clear();
+                          createPost();
                         });
                       },
                       style: ElevatedButton.styleFrom(
@@ -150,42 +169,6 @@ class _PostCreationPageState extends State<PostCreationPage> {
                   ),
                 ),
               ],
-            ),
-            SizedBox(height: 16.0),
-            Expanded(
-              child: ListView.builder(
-                itemCount: posts.length,
-                itemBuilder: (context, index) {
-                  return Card(
-                    color: Color.fromRGBO(255, 255, 255, 1),
-                    margin: EdgeInsets.symmetric(vertical: 8.0),
-                    child: Column(
-                      children: [
-                        ListTile(
-                          title: Container(
-                            decoration: BoxDecoration(
-                              color: Color.fromRGBO(102, 94, 94, 0.174),
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                            padding: EdgeInsets.all(8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('From City: ${posts[index].fromCity}'),
-                                Text('To City: ${posts[index].toCity}'),
-                                Text('Date: ${posts[index].date}'),
-                                Text('People Amount: ${posts[index].peopleAmount}'),
-                                Text('Price Amount: ${posts[index].priceAmount}'),
-                                Text('Description: ${posts[index].description}'),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
             ),
           ],
         ),
