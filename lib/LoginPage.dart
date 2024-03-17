@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'RegistrationPage.dart';
 import 'PostList.dart';
 
+String? globalToken;
+
 class LoginPage extends StatefulWidget {
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -33,14 +35,12 @@ class _LoginPageState extends State<LoginPage> {
       if (response.statusCode == 200) {
         // Login successful, extract token from response
         var data = jsonDecode(response.body);
-        var token = data['token'];
-        
-        // You can save this token to use for future authenticated requests
-        print('Login successful, Token: $token');
+        globalToken = data['token'];
+        print('Login successful, Token: $globalToken');
 
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => DestinationListPage()),
+          MaterialPageRoute(builder: (context) => DestinationListPage()), // Pass token to DestinationListPage
         );
       } else {
         // Login failed, display error message
