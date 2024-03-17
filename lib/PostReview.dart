@@ -1,5 +1,6 @@
 import 'package:namer_app/PostList.dart';
 import 'package:flutter/material.dart';
+import 'package:namer_app/ProfilePage.dart';
 
 class DestinationDetailPage extends StatefulWidget {
   final Destination destination;
@@ -37,7 +38,14 @@ class _DestinationDetailPageState extends State<DestinationDetailPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    buildDetailRow("Profile:",'Driver101', Icons.drive_eta_rounded), //NEED TO LINK TO PROFILE AND SHOW STARS
+                    buildDetailRowProfile("Driver:",'', Icons.drive_eta_rounded, () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ProfilePage(profile: myProfile),
+                        ),
+                      );
+                    }),
                     SizedBox(height: 3.0),
                     buildDetailRow("To City:", widget.destination.toCity, Icons.location_on),
                     SizedBox(height: 3.0),
@@ -146,6 +154,33 @@ class _DestinationDetailPageState extends State<DestinationDetailPage> {
     );
   }
   //--- Selected Post Info -END- ---//
+
+  //--- Selected Post Info For Profile -BEGIN- ---//
+Widget buildDetailRowProfile(String label, String value, IconData iconData, Function()? onTap) {
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      Row(
+        children: [
+          Icon(
+            iconData,
+            color: Colors.black, 
+          ),
+          SizedBox(width: 8.0),
+           Text(label, style: TextStyle(fontSize: 18.0)),
+        ],
+      ),
+      GestureDetector(
+        onTap: onTap,
+        child: Text(
+          myProfile.username,
+          style: TextStyle(fontSize: 18.0, decoration: TextDecoration.underline),
+        ),
+      ),
+    ],
+  );
+}
+  //--- Selected Post Info For Profile -BEGIN- ---//
   
   //--- People DropDown -BEGIN- ---//
   Widget buildDropdownRow(String label, Widget dropdownWidget) {
@@ -230,3 +265,16 @@ class _DestinationDetailPageState extends State<DestinationDetailPage> {
   }
   //--- Pet Boolean -END- ---//
 }
+
+//--- Temporary Profile Data -BEGIN- ---//
+  Profile myProfile = Profile(
+  profilePhotoUrl: 'https://via.placeholder.com/150',
+  username: 'user123',
+  firstName: 'John',
+  lastName: 'Doe',
+  // email: 'john.doe@example.com',
+  // phoneNumber: '123-456-7890',
+  carNumber: 'ABC123',
+  rating: 4.5,
+);
+//--- Temporary Profile Data -END- ---//
