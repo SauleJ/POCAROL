@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'BottomNavigationBar.dart';
-import 'PostReview.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'PostReview.dart';
 
+// Define the Destination class
 class Destination {
   final String fromCity;
   final String toCity;
@@ -22,6 +23,7 @@ class Destination {
   });
 }
 
+// Define the DestinationListPage widget
 class DestinationListPage extends StatefulWidget {
   @override
   _DestinationListPageState createState() => _DestinationListPageState();
@@ -29,7 +31,9 @@ class DestinationListPage extends StatefulWidget {
 
 class _DestinationListPageState extends State<DestinationListPage> {
   late Future<List<Destination>> futurePosts;
-  late List<Destination> filteredTrips;
+  List<Destination> allPosts = [];
+  List<Destination> filteredTrips = [];
+
   TextEditingController _fromCityController = TextEditingController();
   TextEditingController _toCityController = TextEditingController();
   TextEditingController _dateController = TextEditingController();
@@ -38,44 +42,45 @@ class _DestinationListPageState extends State<DestinationListPage> {
   void initState() {
     super.initState();
     futurePosts = fetchPosts();
-    filteredTrips = [];
   }
 
-  //---Fetching posts-BEGIN- ---//
+  // Fetch posts from API
   Future<List<Destination>> fetchPosts() async {
-  try {
-    final response = await http.get(Uri.parse('http://localhost:3000/getAllPosts'));
-    if (response.statusCode == 200) {
-      final List<dynamic> jsonData = jsonDecode(response.body);
-      List<Destination> destinations = [];
+    try {
+      final response = await http.get(Uri.parse('http://localhost:3000/getAllPosts'));
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = jsonDecode(response.body);
+        List<Destination> destinations = [];
 
-      for (var post in jsonData) {
-        Destination destination = Destination(
-          fromCity: post['fromCity'],
-          toCity: post['toCity'],
-          date: post['date'],
-          peopleAmount: post['peopleAmount'],
-          priceAmount: post['priceAmount'],
-          postComment: post['description'], 
-        );
+        for (var post in jsonData) {
+          Destination destination = Destination(
+            fromCity: post['fromCity'],
+            toCity: post['toCity'],
+            date: post['date'],
+            peopleAmount: post['peopleAmount'],
+            priceAmount: post['priceAmount'],
+            postComment: post['description'], 
+          );
 
-        destinations.add(destination);
+          destinations.add(destination);
+        }
 
+        setState(() {
+          allPosts = destinations;
+          filteredTrips = destinations;
+        });
+
+        return destinations;
+      } else {
+        throw Exception('Failed to load posts');
       }
-
-      return destinations;
-    } else {
-      throw Exception('Failed to load posts');
+    } catch (error) {
+      print(error);
+      throw Exception('Failed to fetch posts');
     }
-  } catch (error) {
-    print(error);
-    throw Exception('Failed to fetch posts');
   }
-}
-  //---Fetching posts-END- ---//
 
-
-  //---Filter button -BEGIN- ---//
+  // Show filter dialog
   void _showFilterDialog() {
     showDialog(
       context: context,
@@ -114,21 +119,23 @@ class _DestinationListPageState extends State<DestinationListPage> {
                 _fromCityController.clear();
                 _toCityController.clear();
                 _dateController.clear();
+                setState(() {
+                  filteredTrips = allPosts;
+                });
                 Navigator.of(context).pop();
               },
               child: Icon(Icons.close, color: Colors.red),
             ),
             TextButton(
               onPressed: () async {
-                List<Destination> posts = await futurePosts;
                 setState(() {
-                  filteredTrips = posts.where((trip) {
+                  filteredTrips = filteredTrips.where((post) {
                     bool fromCityCondition = _fromCityController.text.isEmpty ||
-                        trip.fromCity.toLowerCase().contains(_fromCityController.text.toLowerCase());
+                        post.fromCity.toLowerCase().contains(_fromCityController.text.toLowerCase());
                     bool toCityCondition = _toCityController.text.isEmpty ||
-                        trip.toCity.toLowerCase().contains(_toCityController.text.toLowerCase());
+                        post.toCity.toLowerCase().contains(_toCityController.text.toLowerCase());
                     bool dateCondition = _dateController.text.isEmpty ||
-                        trip.date.toLowerCase().contains(_dateController.text.toLowerCase());
+                        post.date.toLowerCase().contains(_dateController.text.toLowerCase());
                     return fromCityCondition && toCityCondition && dateCondition;
                   }).toList();
                 });
@@ -141,7 +148,6 @@ class _DestinationListPageState extends State<DestinationListPage> {
       },
     );
   }
-  //---Filter button -END- ---//
 
   @override
   Widget build(BuildContext context) {
@@ -149,13 +155,13 @@ class _DestinationListPageState extends State<DestinationListPage> {
       future: futurePosts,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator(); // Placeholder for loading indicator
+          return Center(
+            child: CircularProgressIndicator(), // Placeholder for loading indicator
+          );
         } else if (snapshot.hasError) {
           return Text('Error: ${snapshot.error}');
         } else {
-          filteredTrips = snapshot.data!; // Initialize filteredTrips with the fetched data
           return Scaffold(
-            //---Destination Search -BEGIN- ---//
             appBar: AppBar(
               backgroundColor: Colors.white,
               title: Container(
@@ -166,7 +172,7 @@ class _DestinationListPageState extends State<DestinationListPage> {
                 child: TextField(
                   onChanged: (value) {
                     setState(() {
-                      filteredTrips = snapshot.data!.where((trip) =>
+                      filteredTrips = allPosts.where((trip) =>
                           trip.toCity.toLowerCase().contains(value.toLowerCase())).toList();
                     });
                   },
@@ -182,7 +188,6 @@ class _DestinationListPageState extends State<DestinationListPage> {
                 ),
               ),
             ),
-            //---Destination Search -END- ---//
             backgroundColor: Color.fromRGBO(128, 0, 0, 1),
             body: ListView.builder(
               itemCount: filteredTrips.length,
@@ -190,7 +195,6 @@ class _DestinationListPageState extends State<DestinationListPage> {
                 return Card(
                   color: Color.fromRGBO(255, 255, 255, 1),
                   margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                  //---Post List -BEGIN- ---//
                   child: ListTile(
                     title: Container(
                       decoration: BoxDecoration(
@@ -200,42 +204,38 @@ class _DestinationListPageState extends State<DestinationListPage> {
                       padding: EdgeInsets.all(8.0),
                       child: Text('Destination: ${filteredTrips[index].toCity}'),
                     ),
-                    subtitle: Row(
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        Row(
                           children: [
-                            Row(
-                              children: [
-                                Icon(Icons.location_city, color: Colors.black),
-                                SizedBox(width: 8.0),
-                                Text('${filteredTrips[index].fromCity}'),
-                              ],
-                            ),
-                            SizedBox(height: 4.0),
-                            Row(
-                              children: [
-                                Icon(Icons.calendar_today, color: Colors.black),
-                                SizedBox(width: 8.0),
-                                Text('${filteredTrips[index].date}'),
-                              ],
-                            ),
-                            SizedBox(height: 4.0),
-                            Row(
-                              children: [
-                                Icon(Icons.attach_money, color: Colors.black),
-                                SizedBox(width: 8.0),
-                                Text('${filteredTrips[index].priceAmount}'),
-                              ],
-                            ),
-                            SizedBox(height: 4.0),
-                            Row(
-                              children: [
-                                Icon(Icons.people, color: Colors.black),
-                                SizedBox(width: 8.0),
-                                Text('${filteredTrips[index].peopleAmount}'),
-                              ],
-                            ),
+                            Icon(Icons.location_city, color: Colors.black),
+                            SizedBox(width: 8.0),
+                            Text('${filteredTrips[index].fromCity}'),
+                          ],
+                        ),
+                        SizedBox(height: 4.0),
+                        Row(
+                          children: [
+                            Icon(Icons.calendar_today, color: Colors.black),
+                            SizedBox(width: 8.0),
+                            Text('${filteredTrips[index].date}'),
+                          ],
+                        ),
+                        SizedBox(height: 4.0),
+                        Row(
+                          children: [
+                            Icon(Icons.attach_money, color: Colors.black),
+                            SizedBox(width: 8.0),
+                            Text('${filteredTrips[index].priceAmount}'),
+                          ],
+                        ),
+                        SizedBox(height: 4.0),
+                        Row(
+                          children: [
+                            Icon(Icons.people, color: Colors.black),
+                            SizedBox(width: 8.0),
+                            Text('${filteredTrips[index].peopleAmount}'),
                           ],
                         ),
                       ],
@@ -251,13 +251,10 @@ class _DestinationListPageState extends State<DestinationListPage> {
                       );
                     },
                   ),
-                  //---Post List -END- ---//
                 );
               },
             ),
-            //--- Bottom Navigation -BEGIN- ---//
             bottomNavigationBar: MyBottomNavigationBar(),
-            //--- Bottom Navigation -END- ---//
           );
         }
       },
