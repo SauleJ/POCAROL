@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:namer_app/PostList.dart';
 import 'package:namer_app/CreatePost.dart';
 import 'package:namer_app/ProfilePage.dart';
+import 'RequestsHandling.dart';
 
 class MyBottomNavigationBar extends StatelessWidget {
   @override
@@ -58,7 +59,7 @@ class MyBottomNavigationBar extends StatelessWidget {
               Navigator.push(context,MaterialPageRoute(builder: (context) => PostCreationPage()));
             case 3:
               //Add people
-              Navigator.pushReplacementNamed(context, '/car_crash');
+              Navigator.push(context,MaterialPageRoute(builder: (context) => RequestsHandling()));
             case 4:
               //Profile
               Navigator.push(context,MaterialPageRoute(builder: (context) => 
