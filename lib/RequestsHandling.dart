@@ -58,36 +58,16 @@ class _RequestsHandlingState extends State<RequestsHandling> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Choose Your travel buddy'),
+        backgroundColor: Colors.white,
+      ),
       backgroundColor: Color.fromRGBO(128, 0, 0, 1),
       body: Padding(
         padding: const EdgeInsets.symmetric(vertical: 30),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: IconButton(
-                icon: Icon(Icons.arrow_back),
-                onPressed: () {
-                  Navigator.pop(context);
-                  print('Go back');
-                },
-              ),
-            ),
-            Align(
-              alignment: Alignment.center,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 0, 0),
-                child: const Text(
-                  "Choose Your travel buddy",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Color.fromARGB(255, 255, 255, 255),
-                    fontSize: 30,
-                  ),
-                ),
-              ),
-            ),
             SizedBox(height: 20),
             Expanded(
               child: Stack(

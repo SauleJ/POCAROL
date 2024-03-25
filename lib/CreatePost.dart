@@ -4,8 +4,6 @@ import 'dart:convert';
 import 'LoginPage.dart';
 
 class PostCreationPage extends StatefulWidget {
-
-
   @override
   _PostCreationPageState createState() => _PostCreationPageState();
 }
@@ -17,8 +15,6 @@ class _PostCreationPageState extends State<PostCreationPage> {
   TextEditingController dateController = TextEditingController();
   int? selectedPeopleAmount;
   TextEditingController priceController = TextEditingController();
-
-  //////////////////Sending to backend//////////////
 
   void createPost() async {
     if(descriptionController.text.isNotEmpty && fromCityController.text.isNotEmpty && toCityController.text.isNotEmpty && dateController.text.isNotEmpty && priceController.text.isNotEmpty ){
@@ -75,32 +71,19 @@ class _PostCreationPageState extends State<PostCreationPage> {
     }
   }
 
-  ///////////////////////////////////////////////////
-
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color.fromRGBO(128, 0, 0, 1),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        title: Text('Create Post'),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Align(
-              alignment: Alignment.topLeft,
-              child: InkWell(
-                onTap: () {
-                  Navigator.pop(context);
-                },
-                child: Container(
-                  padding: EdgeInsets.all(8.0),
-                  decoration: BoxDecoration(
-                    color: Color.fromRGBO(255, 255, 255, 1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(Icons.arrow_back, color: Color.fromRGBO(128, 0, 0, 1)),
-                ),
-              ),
-            ),
             SizedBox(height: 16.0),
             Container(
               padding: EdgeInsets.all(16.0),
