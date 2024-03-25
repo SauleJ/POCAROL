@@ -11,15 +11,23 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
+  TextEditingController nameController = TextEditingController(); // New controller for name
+  TextEditingController usernameController = TextEditingController(); // New controller for username
+  TextEditingController repeatPasswordController = TextEditingController(); // New controller for repeat password
+
   bool isPasswordVisible = false;
+  bool isRepeatPasswordVisible = false; // Track visibility of repeat password field
   bool _isNotValidate = false;
   bool _isHovering = false;
 
   void registerUser() async {
     if (emailController.text.isNotEmpty && passwordController.text.isNotEmpty) {
+      // Validate other fields as well
       var regBody = {
+        "name": nameController.text,
+        "username": usernameController.text,
         "email": emailController.text,
-        "password": passwordController.text
+        "password": passwordController.text,
       };
 
       var response = await http.post(
@@ -50,9 +58,10 @@ class _RegisterPageState extends State<RegisterPage> {
             Text(
               "Let's register.",
               style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 30,
-                  fontWeight: FontWeight.bold),
+                color: Colors.white,
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             SizedBox(height: 30,),
             Container(
@@ -64,13 +73,42 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
               child: Column(
                 children: <Widget>[
+                  // Name field
+                  Container(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(),
+                    child: TextField(
+                      controller: nameController,
+                      style: TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        hintStyle: TextStyle(color: Color(0xFF5C5F65)),
+                        errorText: _isNotValidate ? "Enter name" : null,
+                        hintText: "Name",
+                      ),
+                    ),
+                  ),
+                  // Username field
+                  Container(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(),
+                    child: TextField(
+                      controller: usernameController,
+                      style: TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        hintStyle: TextStyle(color: Color(0xFF5C5F65)),
+                        errorText: _isNotValidate ? "Enter username" : null,
+                        hintText: "Username",
+                      ),
+                    ),
+                  ),
                   Container(
                     padding:
                         EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(color: Color(0xFF373A3F)),
-                      ),
                     ),
                     child: TextField(
                       controller: emailController,
@@ -107,6 +145,33 @@ class _RegisterPageState extends State<RegisterPage> {
                           ),
                         ),
                         hintText: "Password",
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(),
+                    child: TextField(
+                      controller: repeatPasswordController,
+                      obscureText: !isRepeatPasswordVisible, // Use separate boolean for repeat password visibility
+                      style: TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        errorText: _isNotValidate ? "Passwords do not match" : null,
+                        border: InputBorder.none,
+                        hintStyle: TextStyle(color: Color(0xFF5C5F65)),
+                        suffixIcon: InkWell(
+                          onTap: () {
+                            setState(() {
+                              isRepeatPasswordVisible = !isRepeatPasswordVisible;
+                            });
+                          },
+                          child: Icon(
+                            Icons.remove_red_eye,
+                            color: Color(0xFF5C5F65),
+                          ),
+                        ),
+                        hintText: "Repeat Password",
                       ),
                     ),
                   ),
@@ -160,12 +225,18 @@ class _RegisterPageState extends State<RegisterPage> {
             Center(
               child: MaterialButton(
                 onPressed: () {
-                  registerUser();
-                  if (!_isNotValidate) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => LoginPage()),
-                    );
+                  if (passwordController.text == repeatPasswordController.text) {
+                    registerUser();
+                    if (!_isNotValidate) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => LoginPage()),
+                      );
+                    }
+                  } else {
+                    setState(() {
+                      _isNotValidate = true;
+                    });
                   }
                 },
                 color: Color(0xAA3A5BDA),
