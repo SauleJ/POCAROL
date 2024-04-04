@@ -1,8 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'LoginPage.dart';
-
 class PostCreationPage extends StatefulWidget {
   @override
   _PostCreationPageState createState() => _PostCreationPageState();
@@ -16,59 +12,13 @@ class _PostCreationPageState extends State<PostCreationPage> {
   int? selectedPeopleAmount;
   TextEditingController priceController = TextEditingController();
 
-  void createPost() async {
-    if(descriptionController.text.isNotEmpty && fromCityController.text.isNotEmpty && toCityController.text.isNotEmpty && dateController.text.isNotEmpty && priceController.text.isNotEmpty ){
-        
-      Map<String, String> regBody = {
-      "description": descriptionController.text,
-      "date": dateController.text,
-      "fromCity": fromCityController.text,
-      "toCity": toCityController.text,
-      "peopleAmount": selectedPeopleAmount.toString(),
-      "priceAmount": priceController.text,
-    };
-
-    // Check if globalToken is not null, then include it in the request body
-    if (globalToken != null) {
-      regBody['token'] = globalToken!;
-    }
-
-
-    var response = await http.post(
-      Uri.parse('http://localhost:3000/savePost'),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode(regBody),
+void createPost() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Post created successfully'),
+        backgroundColor: Colors.green,
+      ),
     );
-
-    var jsonResponse = jsonDecode(response.body);
-
-    print(jsonResponse['status']);
-
-    if (jsonResponse['status']) {
-      print('Post created successfully');
-      
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text("Post Created"),
-            content: Text("You have created a post."),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop();
-                },
-                child: Text("OK"),
-              ),
-            ],
-          );
-        },
-      );
-    } else {
-      print('Error creating post');
-    }
-    }
   }
 
   @override

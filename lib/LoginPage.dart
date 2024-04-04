@@ -1,10 +1,6 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'RegistrationPage.dart';
 import 'PostList.dart';
-
-String? globalToken;
 
 class LoginPage extends StatefulWidget {
   @override
@@ -17,41 +13,6 @@ class _LoginPageState extends State<LoginPage> {
   bool isPasswordVisible = false;
   bool _isNotValidate = false;
   bool _isHovering = false;
-
-  Future<void> loginUser() async {
-    if (emailController.text.isNotEmpty && passwordController.text.isNotEmpty) {
-      var loginData = {
-        "email": emailController.text,
-        "password": passwordController.text
-      };
-
-      var response = await http.post(
-        Uri.parse('http://localhost:3000/login'),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(loginData),
-      );
-
-      // Process response
-      if (response.statusCode == 200) {
-        // Login successful, extract token from response
-        var data = jsonDecode(response.body);
-        globalToken = data['token'];
-        print('Login successful, Token: $globalToken');
-
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => DestinationListPage()), // Pass token to DestinationListPage
-        );
-      } else {
-        // Login failed, display error message
-        print('Login failed: ${response.body}');
-      }
-    } else {
-      setState(() {
-        _isNotValidate = true;
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -174,7 +135,12 @@ class _LoginPageState extends State<LoginPage> {
             SizedBox(height: 20,),
             Center(
               child: MaterialButton(
-                onPressed: loginUser,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => DestinationListPage()),
+                  );
+                },
                 color: Color(0xAA3A5BDA),
                 padding: EdgeInsets.all(16),
                 shape: RoundedRectangleBorder(

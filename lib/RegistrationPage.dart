@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'LoginPage.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -11,39 +9,14 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
-  TextEditingController nameController = TextEditingController(); // New controller for name
-  TextEditingController usernameController = TextEditingController(); // New controller for username
-  TextEditingController repeatPasswordController = TextEditingController(); // New controller for repeat password
+  TextEditingController nameController = TextEditingController();
+  TextEditingController usernameController = TextEditingController();
+  TextEditingController repeatPasswordController = TextEditingController();
 
   bool isPasswordVisible = false;
-  bool isRepeatPasswordVisible = false; // Track visibility of repeat password field
+  bool isRepeatPasswordVisible = false; // Added separate boolean for repeat password visibility
   bool _isNotValidate = false;
   bool _isHovering = false;
-
-  void registerUser() async {
-    if (emailController.text.isNotEmpty && passwordController.text.isNotEmpty) {
-      // Validate other fields as well
-      var regBody = {
-        "name": nameController.text,
-        "username": usernameController.text,
-        "email": emailController.text,
-        "password": passwordController.text,
-      };
-
-      var response = await http.post(
-        Uri.parse('http://localhost:3000/register'),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(regBody),
-      );
-
-      print('Server response: ${response.statusCode}');
-      print('Response body: ${response.body}');
-    } else {
-      setState(() {
-        _isNotValidate = true;
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,11 +46,13 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
               child: Column(
                 children: <Widget>[
-                  // Name field
                   Container(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(),
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(color: Color(0xFF373A3F)),
+                      ),
+                    ),
                     child: TextField(
                       controller: nameController,
                       style: TextStyle(color: Colors.white),
@@ -89,10 +64,8 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                     ),
                   ),
-                  // Username field
                   Container(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(),
                     child: TextField(
                       controller: usernameController,
@@ -106,10 +79,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
                   Container(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(),
                     child: TextField(
                       controller: emailController,
                       style: TextStyle(color: Colors.white),
@@ -122,8 +93,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
                   Container(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(),
                     child: TextField(
                       controller: passwordController,
@@ -149,12 +119,11 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
                   Container(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(),
                     child: TextField(
                       controller: repeatPasswordController,
-                      obscureText: !isRepeatPasswordVisible, // Use separate boolean for repeat password visibility
+                      obscureText: !isRepeatPasswordVisible,
                       style: TextStyle(color: Colors.white),
                       decoration: InputDecoration(
                         errorText: _isNotValidate ? "Passwords do not match" : null,
@@ -226,13 +195,10 @@ class _RegisterPageState extends State<RegisterPage> {
               child: MaterialButton(
                 onPressed: () {
                   if (passwordController.text == repeatPasswordController.text) {
-                    registerUser();
-                    if (!_isNotValidate) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => LoginPage()),
-                      );
-                    }
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => LoginPage()),
+                    );
                   } else {
                     setState(() {
                       _isNotValidate = true;
