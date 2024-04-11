@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 class PostCreationPage extends StatefulWidget {
   @override
   _PostCreationPageState createState() => _PostCreationPageState();
@@ -12,15 +13,6 @@ class _PostCreationPageState extends State<PostCreationPage> {
   int? selectedPeopleAmount;
   TextEditingController priceController = TextEditingController();
 
-void createPost() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Post created successfully'),
-        backgroundColor: Colors.green,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,79 +23,107 @@ void createPost() {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SizedBox(height: 16.0),
-            Container(
-              padding: EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16.0),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(height: 16.0),
+              Container(
+                padding: EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16.0),
+                ),
+                child: Column(
+                  children: [
+                    buildTextFieldWithIcon(
+                      fromCityController,
+                      'From',
+                      Icons.location_on,
+                      isFirst: true,
+                    ),
+                    SizedBox(height: 16.0),
+                    buildTextFieldWithIcon(
+                      toCityController,
+                      'To',
+                      Icons.location_on,
+                    ),
+                    SizedBox(height: 16.0),
+                    buildTextFieldWithIcon(
+                      dateController,
+                      'Date',
+                      Icons.date_range,
+                    ),
+                    SizedBox(height: 16.0),
+                    buildPeopleAmountDropdown(),
+                    SizedBox(height: 16.0),
+                    buildTextFieldWithIcon(
+                      priceController,
+                      'Price',
+                      Icons.attach_money,
+                    ),
+                    SizedBox(height: 16.0),
+                    buildTextFieldWithIcon(
+                      descriptionController,
+                      'Description',
+                      Icons.description,
+                      maxLines: 4,
+                      verticalAlignment: CrossAxisAlignment.start,
+                      isLast: true,
+                    ),
+                  ],
+                ),
               ),
-              child: Column(
+              SizedBox(height: 16.0),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  buildTextFieldWithIcon(fromCityController, 'From', Icons.location_on, isFirst: true),
-                  SizedBox(height: 16.0),
-                  buildTextFieldWithIcon(toCityController, 'To', Icons.location_on),
-                  SizedBox(height: 16.0),
-                  buildTextFieldWithIcon(dateController, 'Date', Icons.date_range),
-                  SizedBox(height: 16.0),
-                  buildPeopleAmountDropdown(),
-                  SizedBox(height: 16.0),
-                  buildTextFieldWithIcon(priceController, 'Price', Icons.attach_money),
-                  SizedBox(height: 16.0),
-                  buildTextFieldWithIcon(descriptionController, 'Description', Icons.description, maxLines: 4, verticalAlignment: CrossAxisAlignment.start, isLast: true),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: SizedBox(
+                      width: 80.0,
+                      height: 50.0,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                        ),
+                        child: Icon(Icons.close),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: SizedBox(
+                      width: 80.0,
+                      height: 50.0,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (_validateMandatoryFields()) {
+                            // Perform post creation action here
+                            _createPost();
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Please fill all fields'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                        ),
+                        child: Icon(Icons.check),
+                      ),
+                    ),
+                  ),
                 ],
               ),
-            ),
-            SizedBox(height: 16.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: SizedBox(
-                    width: 80.0,
-                    height: 50.0,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      style: ElevatedButton.styleFrom(
-                      ).copyWith(
-                        backgroundColor: MaterialStateProperty.all<Color>(Color.fromRGBO(255, 255, 255, 1)),
-                        padding: MaterialStateProperty.all<EdgeInsetsGeometry>(EdgeInsets.all(8.0)),
-                        alignment: Alignment.center,
-                      ),
-                      child: Icon(Icons.close, color: Colors.red),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: SizedBox(
-                    width: 80.0,
-                    height: 50.0,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          createPost();
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                      ).copyWith(
-                        backgroundColor: MaterialStateProperty.all<Color>(Color.fromRGBO(255, 255, 255, 1)),
-                        padding: MaterialStateProperty.all<EdgeInsetsGeometry>(EdgeInsets.all(8.0)),
-                        alignment: Alignment.center,
-                      ),
-                      child: Icon(Icons.check, color: Colors.green),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -158,7 +178,8 @@ void createPost() {
           items: [
             DropdownMenuItem<int?>(
               value: null,
-              child: Text('People Amount', style: TextStyle(color: Colors.black.withOpacity(0.5))),
+              child:
+                  Text('People Amount', style: TextStyle(color: Colors.black.withOpacity(0.5))),
             ),
             for (int i = 1; i <= 5; i++)
               DropdownMenuItem<int?>(
@@ -179,6 +200,34 @@ void createPost() {
         ),
       ),
     );
+  }
+
+  bool _validateMandatoryFields() {
+    return fromCityController.text.isNotEmpty &&
+        toCityController.text.isNotEmpty &&
+        dateController.text.isNotEmpty &&
+        priceController.text.isNotEmpty;
+  }
+
+  void _createPost() {
+    // Perform post creation action here
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Post created successfully'),
+        backgroundColor: Colors.green,
+      ),
+    );
+    Navigator.of(context).pop();
+  }
+
+  @override
+  void dispose() {
+    descriptionController.dispose();
+    fromCityController.dispose();
+    toCityController.dispose();
+    dateController.dispose();
+    priceController.dispose();
+    super.dispose();
   }
 }
 

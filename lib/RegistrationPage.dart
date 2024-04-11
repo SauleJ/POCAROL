@@ -14,9 +14,16 @@ class _RegisterPageState extends State<RegisterPage> {
   TextEditingController repeatPasswordController = TextEditingController();
 
   bool isPasswordVisible = false;
-  bool isRepeatPasswordVisible = false; // Added separate boolean for repeat password visibility
+  bool isRepeatPasswordVisible = false; 
   bool _isNotValidate = false;
   bool _isHovering = false;
+
+  bool _validateEmail(String value) {
+    String emailPattern =
+        r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$';
+    RegExp regExp = new RegExp(emailPattern);
+    return regExp.hasMatch(value);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,7 +66,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         hintStyle: TextStyle(color: Color(0xFF5C5F65)),
-                        errorText: _isNotValidate ? "Enter name" : null,
+                        errorText: _isNotValidate && nameController.text.isEmpty ? "Enter name" : null,
                         hintText: "Name",
                       ),
                     ),
@@ -73,7 +80,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         hintStyle: TextStyle(color: Color(0xFF5C5F65)),
-                        errorText: _isNotValidate ? "Enter username" : null,
+                        errorText: _isNotValidate && usernameController.text.isEmpty ? "Enter username" : null,
                         hintText: "Username",
                       ),
                     ),
@@ -87,7 +94,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         hintStyle: TextStyle(color: Color(0xFF5C5F65)),
-                        errorText: _isNotValidate ? "enter email" : null,
+                        errorText: _isNotValidate && !_validateEmail(emailController.text) ? "Enter valid email" : null,
                         hintText: "Email or Phone number",
                       ),
                     ),
@@ -100,7 +107,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       obscureText: !isPasswordVisible,
                       style: TextStyle(color: Colors.white),
                       decoration: InputDecoration(
-                        errorText: _isNotValidate ? "Invalid password" : null,
+                        errorText: _isNotValidate && passwordController.text.isEmpty ? "Enter password" : null,
                         border: InputBorder.none,
                         hintStyle: TextStyle(color: Color(0xFF5C5F65)),
                         suffixIcon: InkWell(
@@ -126,7 +133,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       obscureText: !isRepeatPasswordVisible,
                       style: TextStyle(color: Colors.white),
                       decoration: InputDecoration(
-                        errorText: _isNotValidate ? "Passwords do not match" : null,
+                        errorText: _isNotValidate && repeatPasswordController.text.isEmpty ? "Repeat password" : null,
                         border: InputBorder.none,
                         hintStyle: TextStyle(color: Color(0xFF5C5F65)),
                         suffixIcon: InkWell(
@@ -194,15 +201,38 @@ class _RegisterPageState extends State<RegisterPage> {
             Center(
               child: MaterialButton(
                 onPressed: () {
-                  if (passwordController.text == repeatPasswordController.text) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => LoginPage()),
-                    );
-                  } else {
-                    setState(() {
-                      _isNotValidate = true;
-                    });
+                  setState(() {
+                    _isNotValidate = true;
+                  });
+                  if (_validateEmail(emailController.text) &&
+                      passwordController.text.isNotEmpty &&
+                      nameController.text.isNotEmpty &&
+                      usernameController.text.isNotEmpty &&
+                      repeatPasswordController.text.isNotEmpty) {
+                    if (passwordController.text == repeatPasswordController.text) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => LoginPage()),
+                      );
+                    } else {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text("Passwords do not match"),
+                            content: Text("Please make sure both passwords match."),
+                            actions: <Widget>[
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text("OK"),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    }
                   }
                 },
                 color: Color(0xAA3A5BDA),

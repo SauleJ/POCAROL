@@ -14,6 +14,13 @@ class _LoginPageState extends State<LoginPage> {
   bool _isNotValidate = false;
   bool _isHovering = false;
 
+  bool _validateEmail(String value) {
+    String emailPattern =
+        r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$'; // Regular expression for email format
+    RegExp regExp = new RegExp(emailPattern);
+    return regExp.hasMatch(value);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,9 +34,10 @@ class _LoginPageState extends State<LoginPage> {
             Text(
               "Let's sign you in.",
               style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 30,
-                  fontWeight: FontWeight.bold),
+                color: Colors.white,
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             SizedBox(height: 30,),
             Container(
@@ -42,8 +50,7 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 children: <Widget>[
                   Container(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
                       border: Border(
                         bottom: BorderSide(color: Color(0xFF373A3F)),
@@ -55,21 +62,20 @@ class _LoginPageState extends State<LoginPage> {
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         hintStyle: TextStyle(color: Color(0xFF5C5F65)),
-                        errorText: _isNotValidate ? "enter email" : null,
+                        errorText: _isNotValidate && !_validateEmail(emailController.text) ? "Invalid email format" : null,
                         hintText: "Email or Phone number",
                       ),
                     ),
                   ),
                   Container(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(),
                     child: TextField(
                       controller: passwordController,
                       obscureText: !isPasswordVisible,
                       style: TextStyle(color: Colors.white),
                       decoration: InputDecoration(
-                        errorText: _isNotValidate ? "Invalid password" : null,
+                        errorText: _isNotValidate && passwordController.text.isEmpty ? "Password is required" : null,
                         border: InputBorder.none,
                         hintStyle: TextStyle(color: Color(0xFF5C5F65)),
                         suffixIcon: InkWell(
@@ -136,10 +142,17 @@ class _LoginPageState extends State<LoginPage> {
             Center(
               child: MaterialButton(
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => DestinationListPage()),
-                  );
+                  setState(() {
+                    _isNotValidate = true;
+                  });
+                  if (_validateEmail(emailController.text) && passwordController.text.isNotEmpty) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => DestinationListPage()),
+                    );
+                  } else {
+                    // Show red error text for invalid email or missing password
+                  }
                 },
                 color: Color(0xAA3A5BDA),
                 padding: EdgeInsets.all(16),
