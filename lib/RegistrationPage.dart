@@ -1,8 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'LoginPage.dart';
-
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 class RegisterPage extends StatefulWidget {
   @override
   State<RegisterPage> createState() => _RegisterPageState();
@@ -11,14 +10,21 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
-  TextEditingController nameController = TextEditingController(); // New controller for name
-  TextEditingController usernameController = TextEditingController(); // New controller for username
-  TextEditingController repeatPasswordController = TextEditingController(); // New controller for repeat password
+  TextEditingController nameController = TextEditingController();
+  TextEditingController usernameController = TextEditingController();
+  TextEditingController repeatPasswordController = TextEditingController();
 
   bool isPasswordVisible = false;
-  bool isRepeatPasswordVisible = false; // Track visibility of repeat password field
+  bool isRepeatPasswordVisible = false; 
   bool _isNotValidate = false;
   bool _isHovering = false;
+
+  bool _validateEmail(String value) {
+    String emailPattern =
+        r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$';
+    RegExp regExp = new RegExp(emailPattern);
+    return regExp.hasMatch(value);
+  }
 
   void registerUser() async {
     if (emailController.text.isNotEmpty && passwordController.text.isNotEmpty) {
@@ -73,26 +79,26 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
               child: Column(
                 children: <Widget>[
-                  // Name field
                   Container(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(),
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(color: Color(0xFF373A3F)),
+                      ),
+                    ),
                     child: TextField(
                       controller: nameController,
                       style: TextStyle(color: Colors.white),
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         hintStyle: TextStyle(color: Color(0xFF5C5F65)),
-                        errorText: _isNotValidate ? "Enter name" : null,
+                        errorText: _isNotValidate && nameController.text.isEmpty ? "Enter name" : null,
                         hintText: "Name",
                       ),
                     ),
                   ),
-                  // Username field
                   Container(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(),
                     child: TextField(
                       controller: usernameController,
@@ -100,37 +106,34 @@ class _RegisterPageState extends State<RegisterPage> {
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         hintStyle: TextStyle(color: Color(0xFF5C5F65)),
-                        errorText: _isNotValidate ? "Enter username" : null,
+                        errorText: _isNotValidate && usernameController.text.isEmpty ? "Enter username" : null,
                         hintText: "Username",
                       ),
                     ),
                   ),
                   Container(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(),
                     child: TextField(
                       controller: emailController,
                       style: TextStyle(color: Colors.white),
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         hintStyle: TextStyle(color: Color(0xFF5C5F65)),
-                        errorText: _isNotValidate ? "enter email" : null,
+                        errorText: _isNotValidate && !_validateEmail(emailController.text) ? "Enter valid email" : null,
                         hintText: "Email or Phone number",
                       ),
                     ),
                   ),
                   Container(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(),
                     child: TextField(
                       controller: passwordController,
                       obscureText: !isPasswordVisible,
                       style: TextStyle(color: Colors.white),
                       decoration: InputDecoration(
-                        errorText: _isNotValidate ? "Invalid password" : null,
+                        errorText: _isNotValidate && passwordController.text.isEmpty ? "Enter password" : null,
                         border: InputBorder.none,
                         hintStyle: TextStyle(color: Color(0xFF5C5F65)),
                         suffixIcon: InkWell(
@@ -149,15 +152,14 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
                   Container(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(),
                     child: TextField(
                       controller: repeatPasswordController,
-                      obscureText: !isRepeatPasswordVisible, // Use separate boolean for repeat password visibility
+                      obscureText: !isRepeatPasswordVisible,
                       style: TextStyle(color: Colors.white),
                       decoration: InputDecoration(
-                        errorText: _isNotValidate ? "Passwords do not match" : null,
+                        errorText: _isNotValidate && repeatPasswordController.text.isEmpty ? "Repeat password" : null,
                         border: InputBorder.none,
                         hintStyle: TextStyle(color: Color(0xFF5C5F65)),
                         suffixIcon: InkWell(
@@ -225,18 +227,40 @@ class _RegisterPageState extends State<RegisterPage> {
             Center(
               child: MaterialButton(
                 onPressed: () {
-                  if (passwordController.text == repeatPasswordController.text) {
-                    registerUser();
-                    if (!_isNotValidate) {
+                  registerUser();
+                  setState(() {
+                    _isNotValidate = true;
+                  });
+                  if (_validateEmail(emailController.text) &&
+                      passwordController.text.isNotEmpty &&
+                      nameController.text.isNotEmpty &&
+                      usernameController.text.isNotEmpty &&
+                      repeatPasswordController.text.isNotEmpty) {
+                    if (passwordController.text == repeatPasswordController.text) {
                       Navigator.push(
                         context,
+                        
                         MaterialPageRoute(builder: (context) => LoginPage()),
                       );
+                    } else {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text("Passwords do not match"),
+                            content: Text("Please make sure both passwords match."),
+                            actions: <Widget>[
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text("OK"),
+                              ),
+                            ],
+                          );
+                        },
+                      );
                     }
-                  } else {
-                    setState(() {
-                      _isNotValidate = true;
-                    });
                   }
                 },
                 color: Color(0xAA3A5BDA),

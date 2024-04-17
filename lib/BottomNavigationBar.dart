@@ -3,6 +3,7 @@ import 'package:namer_app/PostList.dart';
 import 'package:namer_app/CreatePost.dart';
 import 'package:namer_app/ProfilePage.dart';
 import 'RequestsHandling.dart';
+import 'ChatList.dart';
 
 class MyBottomNavigationBar extends StatelessWidget {
   @override
@@ -53,7 +54,7 @@ class MyBottomNavigationBar extends StatelessWidget {
               Navigator.push(context,MaterialPageRoute(builder: (context) => DestinationListPage()));
             case 1:
               //Chat
-              Navigator.pushReplacementNamed(context, '/chat');
+              Navigator.push(context,MaterialPageRoute(builder: (context) => ChatListPage()));
             case 2:
               //Create Post
               Navigator.push(context,MaterialPageRoute(builder: (context) => PostCreationPage()));
