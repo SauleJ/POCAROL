@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'RegistrationPage.dart';
 import 'PostList.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+String? globalToken;
 
 class LoginPage extends StatefulWidget {
   @override
@@ -19,6 +23,41 @@ class _LoginPageState extends State<LoginPage> {
         r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$'; // Regular expression for email format
     RegExp regExp = new RegExp(emailPattern);
     return regExp.hasMatch(value);
+  }
+
+  Future<void> loginUser() async {
+    if (emailController.text.isNotEmpty && passwordController.text.isNotEmpty) {
+      var loginData = {
+        "email": emailController.text,
+        "password": passwordController.text
+      };
+
+      var response = await http.post(
+        Uri.parse('http://localhost:3000/login'),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(loginData),
+      );
+
+      // Process response
+      if (response.statusCode == 200) {
+        // Login successful, extract token from response
+        var data = jsonDecode(response.body);
+        globalToken = data['token'];
+        print('Login successful, Token: $globalToken');
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => DestinationListPage()), // Pass token to DestinationListPage
+        );
+      } else {
+        // Login failed, display error message
+        print('Login failed: ${response.body}');
+      }
+    } else {
+      setState(() {
+        _isNotValidate = true;
+      });
+    }
   }
 
   @override
@@ -142,6 +181,7 @@ class _LoginPageState extends State<LoginPage> {
             Center(
               child: MaterialButton(
                 onPressed: () {
+                  loginUser();
                   setState(() {
                     _isNotValidate = true;
                   });

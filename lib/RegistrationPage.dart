@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'LoginPage.dart';
-
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 class RegisterPage extends StatefulWidget {
   @override
   State<RegisterPage> createState() => _RegisterPageState();
@@ -23,6 +24,31 @@ class _RegisterPageState extends State<RegisterPage> {
         r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$';
     RegExp regExp = new RegExp(emailPattern);
     return regExp.hasMatch(value);
+  }
+
+  void registerUser() async {
+    if (emailController.text.isNotEmpty && passwordController.text.isNotEmpty) {
+      // Validate other fields as well
+      var regBody = {
+        "name": nameController.text,
+        "username": usernameController.text,
+        "email": emailController.text,
+        "password": passwordController.text,
+      };
+
+      var response = await http.post(
+        Uri.parse('http://localhost:3000/register'),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(regBody),
+      );
+
+      print('Server response: ${response.statusCode}');
+      print('Response body: ${response.body}');
+    } else {
+      setState(() {
+        _isNotValidate = true;
+      });
+    }
   }
 
   @override
@@ -201,6 +227,7 @@ class _RegisterPageState extends State<RegisterPage> {
             Center(
               child: MaterialButton(
                 onPressed: () {
+                  registerUser();
                   setState(() {
                     _isNotValidate = true;
                   });
@@ -212,6 +239,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     if (passwordController.text == repeatPasswordController.text) {
                       Navigator.push(
                         context,
+                        
                         MaterialPageRoute(builder: (context) => LoginPage()),
                       );
                     } else {
