@@ -6,6 +6,7 @@ import 'PostReview.dart';
 
 // Define the Destination class
 class Destination {
+  final String id;
   final String createdBy;
   final String fromCity;
   final String toCity;
@@ -15,6 +16,7 @@ class Destination {
   final String postComment;
 
   Destination({
+    required this.id,
     required this.createdBy,
     required this.fromCity,
     required this.toCity,
@@ -55,7 +57,10 @@ class _DestinationListPageState extends State<DestinationListPage> {
         List<Destination> destinations = [];
 
         for (var post in jsonData) {
+          final id = post['_id'] ?? post['id'];
+          print('ID for this post: $id');
           Destination destination = Destination(
+            id: id,
             createdBy: post['createdBy'],
             fromCity: post['fromCity'],
             toCity: post['toCity'],

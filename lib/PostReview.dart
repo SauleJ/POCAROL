@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:namer_app/LoginPage.dart';
 import 'dart:convert';
 import 'PostList.dart';
 
@@ -23,7 +24,7 @@ class _DestinationDetailPageState extends State<DestinationDetailPage> {
     fetchUser();
   }
 
-  // Fetch user data
+  // Fetch user that creted the post 
   void fetchUser() async {
   try {
     final userData = await fetchUserById(widget.destination.createdBy);
@@ -44,6 +45,36 @@ class _DestinationDetailPageState extends State<DestinationDetailPage> {
   }
 }
 
+  // Fetch current user data
+Future<Map<String, dynamic>?> fetchCurrentUser() async {
+  try {
+    final userCurrentData = await getUserByToken(globalToken!);
+    return userCurrentData;
+  } catch (error) {
+    print(error);
+    return null; // Indicate error or missing data
+  }
+}
+
+  Future<Map<String, dynamic>> getUserByToken(String token) async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://localhost:3000/getUserById/$token'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> userData = jsonDecode(response.body);
+        return userData;
+      } else {
+        throw Exception('Failed to load user data by token: ${response.statusCode}');
+      }
+    } catch (error) {
+      throw Exception('Failed to fetch user data by token: $error');
+    }
+  }
+
   Future<Map<String, dynamic>> fetchUserById(String userID) async {
     try {
       final response = await http.get(
@@ -62,6 +93,33 @@ class _DestinationDetailPageState extends State<DestinationDetailPage> {
       throw Exception('Failed to fetch user data: $error');
     }
   }
+
+Future<void> savePostRequest(String postID, List<Map<String, dynamic>> users) async {
+  var regBody = {
+    'postID': postID,
+    'users': users,
+  };
+
+  try {
+    final response = await http.post(
+      Uri.parse('http://localhost:3000/savePostRequest'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(regBody),
+    );
+
+    if (response.statusCode == 200) {
+      print('Post request saved successfully!');
+      // Handle success scenario (e.g., show a confirmation message)
+    } else {
+      print('Error saving post request: ${response.statusCode}');
+      // Handle error scenario (e.g., show an error message)
+    }
+  } catch (error) {
+    print('Error sending POST request: $error');
+    // Handle network or other errors
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -136,6 +194,13 @@ class _DestinationDetailPageState extends State<DestinationDetailPage> {
                 ),
                 ElevatedButton.icon(
                   onPressed: () {
+                    print("presseddd");
+                    savePostRequest(
+                      widget.destination.id, 
+                      [
+                        {'userID': '65f1af037a3d705d0f5f698a', 'state': false},
+                      ]
+                    );
                     Navigator.pop(context);
                   },
                   icon: Icon(Icons.check, color: Colors.green),
