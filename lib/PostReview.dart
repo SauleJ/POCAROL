@@ -59,11 +59,13 @@ Future<Map<String, dynamic>?> fetchCurrentUser() async {
   Future<Map<String, dynamic>> getUserByToken(String token) async {
     try {
       final response = await http.get(
-        Uri.parse('http://localhost:3000/getUserById/$token'),
+        Uri.parse('http://localhost:3000/getUserByToken/$token'),
         headers: {
           'Content-Type': 'application/json',
         },
       );
+      print("------------------");
+      print(token);
       if (response.statusCode == 200) {
         final Map<String, dynamic> userData = jsonDecode(response.body);
         return userData;
@@ -94,31 +96,79 @@ Future<Map<String, dynamic>?> fetchCurrentUser() async {
     }
   }
 
-Future<void> savePostRequest(String postID, List<Map<String, dynamic>> users) async {
-  var regBody = {
-    'postID': postID,
-    'users': users,
-  };
-
+Future<void> savePostRequest(String postID, bool userState) async {
   try {
-    final response = await http.post(
-      Uri.parse('http://localhost:3000/savePostRequest'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(regBody),
-    );
+    // Fetch current user data
+    Map<String, dynamic>? userData = await fetchCurrentUser();
+    
+    // Check if userData is not null and contains user ID
+    if (userData != null && userData.containsKey('_id')) {
+      String userID = userData['_id'];
+      print(userID);
+      print("-------------------");
+      
+      // Construct the request body
+      var regBody = {
+        'postID': postID,
+        'users': [{'userID': userID, 'state': userState}],
+      };
 
-    if (response.statusCode == 200) {
-      print('Post request saved successfully!');
-      // Handle success scenario (e.g., show a confirmation message)
-    } else {
-      print('Error saving post request: ${response.statusCode}');
-      // Handle error scenario (e.g., show an error message)
+      // Send the POST request
+      final response = await http.post(
+        Uri.parse('http://localhost:3000/savePostRequest'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(regBody),
+      );
+
+      if (response.statusCode == 200) {
+        print('Post request saved successfully!');
+        showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('Applied Successfully'),
+                content: Text('You have successfully applied to this post.'),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('OK'),
+                  ),
+                ],
+              );
+            },
+          );
+        // Handle success scenario (e.g., show a confirmation message)
+      } else if (response.statusCode == 409){
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('Already Applied'),
+                content: Text('You have already applied to this post.'),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('OK'),
+                  ),
+                ],
+              );
+            },
+          );
+        } else {
+          // Handle other error scenarios (e.g., show an error message)
+          print('Error saving post request: ${response.statusCode}');
+        }
     }
   } catch (error) {
     print('Error sending POST request: $error');
     // Handle network or other errors
   }
 }
+
 
 
   @override
@@ -196,10 +246,7 @@ Future<void> savePostRequest(String postID, List<Map<String, dynamic>> users) as
                   onPressed: () {
                     print("presseddd");
                     savePostRequest(
-                      widget.destination.id, 
-                      [
-                        {'userID': '65f1af037a3d705d0f5f698a', 'state': false},
-                      ]
+                      widget.destination.id, false
                     );
                     Navigator.pop(context);
                   },

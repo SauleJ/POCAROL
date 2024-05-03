@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:namer_app/PostList.dart';
 import 'package:namer_app/CreatePost.dart';
 import 'package:namer_app/ProfilePage.dart';
-import 'RequestsHandling.dart';
+import 'UserPostsPage.dart';
 import 'ChatList.dart';
 
 class MyBottomNavigationBar extends StatelessWidget {
@@ -60,7 +60,7 @@ class MyBottomNavigationBar extends StatelessWidget {
               Navigator.push(context,MaterialPageRoute(builder: (context) => PostCreationPage()));
             case 3:
               //Add people
-              Navigator.push(context,MaterialPageRoute(builder: (context) => RequestsHandling()));
+              Navigator.push(context,MaterialPageRoute(builder: (context) => UserPostsPage()));
             case 4:
               //Profile
               Navigator.push(context,MaterialPageRoute(builder: (context) => 

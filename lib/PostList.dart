@@ -58,7 +58,6 @@ class _DestinationListPageState extends State<DestinationListPage> {
 
         for (var post in jsonData) {
           final id = post['_id'] ?? post['id'];
-          print('ID for this post: $id');
           Destination destination = Destination(
             id: id,
             createdBy: post['createdBy'],

@@ -1,74 +1,144 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'BottomNavigationBar.dart';
-import 'package:namer_app/PostList.dart';
+import 'package:http/http.dart' as http;
 
-void main() {
-  runApp(ChatApp());
+class Message {
+  final String senderId;
+  final String message;
+  final String username;
+  final DateTime timestamp;
+
+  Message({
+    required this.senderId,
+    required this.message,
+    required this.username,
+    required this.timestamp,
+  });
 }
 
-class ChatApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Chat App',
-      theme: ThemeData(
-        primaryColor: Colors.white,
-      ),
-      home: ChatScreen(),
-    );
-  }
-}
 class ChatScreen extends StatefulWidget {
+  final String postId;
+  final String senderId;
+
+  ChatScreen({required this.postId, required this.senderId});
+
   @override
   _ChatScreenState createState() => _ChatScreenState();
 }
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _textController = TextEditingController();
-  final List<String> _messages = [];
+  final List<Message> _messages = [];
+  final ScrollController _scrollController = ScrollController();
 
-  void _handleSubmitted(String text) {
+  @override
+  void initState() {
+    super.initState();
+    fetchChatMessages();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> fetchChatMessages() async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://localhost:3000/getChatMessages/${widget.postId}'),
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = jsonDecode(response.body);
+        if (jsonData != null) {
+          setState(() {
+            _messages.addAll(jsonData.map((message) => Message(
+                  senderId: message['senderID'],
+                  message: message['message'],
+                  username: message['senderUsername'],
+                  timestamp: DateTime.parse(message['timestamp']),
+                )));
+          });
+          WidgetsBinding.instance!.addPostFrameCallback((_) {
+            _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+          });
+        }
+      } else {
+        print('Failed to fetch chat messages: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('Error fetching chat messages: $error');
+    }
+  }
+
+  void _handleSubmitted(String text) async {
     _textController.clear();
+    final newMessage = Message(
+      senderId: widget.senderId,
+      message: text,
+      username: 'Me',
+      timestamp: DateTime.now(),
+    );
     setState(() {
-      _messages.insert(0, text);
+      _messages.add(newMessage);
     });
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
+      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+    });
+
+    try {
+      final response = await http.post(
+        Uri.parse('http://localhost:3000/saveChatMessages'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode({
+          'postId': widget.postId,
+          'message': text,
+          'senderId': widget.senderId,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        print('Message saved successfully');
+      } else {
+        print('Failed to save message: ${response.reasonPhrase}');
+      }
+    } catch (error) {
+      print('Error sending message: $error');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      //--- Top Bar -BEGIN- ---//
       appBar: AppBar(
         backgroundColor: Colors.white,
         title: Text(
-          'Chat Name', //CHAT NAME RANDOMIZER !CHANGE!
+          'Chat Name',
           style: TextStyle(color: Colors.black),
         ),
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.push(context,MaterialPageRoute(builder: (context) => DestinationListPage()));
+            Navigator.pop(context);
           },
         ),
       ),
-      //--- Top Bar -END- ---//
       backgroundColor: Color.fromRGBO(128, 0, 0, 1),
       body: Column(
         children: <Widget>[
-          //--- Display Chat -BEGIN- ---//
           Expanded(
-            child: ListView.builder(
-              reverse: true,
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final message = _messages[index];
-                final isMe = true;
-                return _buildMessageBubble(isMe, message);
-              },
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              child: Column(
+                children: _messages.map((message) {
+                  final isMe = message.senderId == widget.senderId;
+                  return _buildMessageBubble(isMe, message);
+                }).toList(),
+              ),
             ),
           ),
-          //--- Display Chat -END- ---//
-          //--- Typing Box -BEGIN- ---//
           Container(
             color: Colors.white,
             padding: EdgeInsets.symmetric(horizontal: 8.0),
@@ -88,48 +158,41 @@ class _ChatScreenState extends State<ChatScreen> {
               ],
             ),
           ),
-          //--- Typing Box -END- ---//
         ],
       ),
     );
   }
-}
-//--- Display Chat -BEGIN- ---//
-Widget _buildMessageBubble(bool isMe, String message) {
-  return Padding(
-    padding: EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-    child: Align(
-      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        padding: EdgeInsets.all(12.0),
-        decoration: BoxDecoration(
-          color: isMe ? Colors.white : Colors.black,
-          borderRadius: BorderRadius.circular(12.0),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Me', //ACCORDING TO USER !CHANGE!
-                  style: TextStyle(
-                    color: Colors.grey,
-                  ),
+
+  Widget _buildMessageBubble(bool isMe, Message message) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+      child: Align(
+        alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+        child: Container(
+          padding: EdgeInsets.all(12.0),
+          decoration: BoxDecoration(
+            color: isMe ? Colors.white : Color.fromARGB(255, 33, 135, 152),
+            borderRadius: BorderRadius.circular(12.0),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                isMe ? 'Me' : message.username,
+                style: TextStyle(
+                  color: Colors.grey,
                 ),
-                Text(
-                  message,
-                  style: TextStyle(
-                    color: Colors.black,
-                  ),
+              ),
+              Text(
+                message.message,
+                style: TextStyle(
+                  color: Colors.black,
                 ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
-//--- Display Chat -END- ---//
