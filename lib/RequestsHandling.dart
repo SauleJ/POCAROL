@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
-
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class RequestsHandling extends StatefulWidget {
-  const RequestsHandling({Key? key}) : super(key: key);
+  final String postId;
+
+  const RequestsHandling({Key? key, required this.postId}) : super(key: key);
 
   @override
   _RequestsHandlingState createState() => _RequestsHandlingState();
@@ -16,38 +19,118 @@ class _RequestsHandlingState extends State<RequestsHandling> {
   bool _isAccepted = false;
   bool _isRejected = false;
 
-  List<DataModel> dataList = [
-    DataModel(
-      imageUrl: 'assets/images/profile1.jpg',
-      username: 'WarriorQueen69',
-      firstName: 'Ciri',
-      lastName: 'Fiona',
-      carNumber: 'ABC123',
-      rating: 4.5,
-    ),
-    DataModel(
-      imageUrl: 'assets/images/profile2.jpg',
-      username: 'WhiteWolf123',
-      firstName: 'Geralt',
-      lastName: 'of Rivia',
-      carNumber: 'XYZ789',
-      rating: 4.2,
-    ),
-    DataModel(
-      imageUrl: 'assets/images/profile3.jpg',
-      username: 'RoachLover',
-      firstName: 'Dandelion',
-      lastName: 'Puff',
-      carNumber: 'DEF456',
-      rating: 4.8,
-    ),
-  ];
+  List<DataModel> dataList = [];
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: _currentPage, viewportFraction: 0.8);
+    _pageController.addListener(_pageListener);
+    fetchUsersForPost(widget.postId); // Call function to fetch users when widget initializes
   }
+
+  void _pageListener() {
+  setState(() {
+    _currentPage = _pageController.page!.round();
+  });
+}
+
+  Future<Map<String, dynamic>> fetchUserById(String userID) async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://localhost:3000/getUserById/$userID'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> userData = jsonDecode(response.body);
+        return userData;
+      } else {
+        throw Exception('Failed to load user data: ${response.statusCode}');
+      }
+    } catch (error) {
+      throw Exception('Failed to fetch user data: $error');
+    }
+  }
+
+ Future<void> fetchUsersForPost(String? post_id) async {
+  if (post_id == null) {
+    print('Error: post_id is null');
+    return;
+  }
+
+  try {
+    final response = await http.get(Uri.parse('http://localhost:3000/getUsersForPost/$post_id'));
+    if (response.statusCode == 200) {
+      final jsonData = jsonDecode(response.body);
+      final List<dynamic> usersJson = jsonData['users'];
+      print('usersJson-----------------');
+      print(usersJson);
+      // Iterate through usersJson and fetch user data for each user ID
+      for (final user in usersJson) {
+        final String userID = user['userID'];
+        final userData = await fetchUserById(userID);
+        final dataModel = DataModel.fromJson(userData);
+        setState(() {
+          dataList.add(dataModel);
+        });
+      }
+    } else {
+      // Handle error response
+      print('Failed to load users: ${response.statusCode}');
+    }
+  } catch (error) {
+    // Handle network or server errors
+    print('Error fetching users: $error');
+  }
+}
+
+Future<void> updateUserState(String userID, String postID, bool newState, int index) async {
+  try {
+    final response = await http.put(
+      Uri.parse('http://localhost:3000/updateUserState'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'userID': userID, 'postID': postID,  'newState': newState, 'index': index}),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update user state: ${response.statusCode}');
+    }
+  } catch (error) {
+    throw Exception('Error updating user state: $error');
+  }
+}
+
+
+void acceptUser(int index) {
+  setState(() {
+    _isAccepted = true;
+    _isRejected = false;
+  });
+  Timer(Duration(seconds: 1), () {
+    setState(() {
+      _isAccepted = false;
+    });
+  });
+  updateUserState(dataList[index].userID, widget.postId,  true, _currentPage);
+}
+
+void rejectUser(int index) {
+  setState(() {
+    _isRejected = true;
+    _isAccepted = false;
+  });
+  Timer(Duration(seconds: 2), () {
+    setState(() {
+      _isRejected = false;
+    });
+  });
+  updateUserState(dataList[index].userID, widget.postId, false, _currentPage);
+}
+
+
 
   @override
   void dispose() {
@@ -109,48 +192,54 @@ class _RequestsHandlingState extends State<RequestsHandling> {
                 ],
               ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      _isAccepted = true;
-                      _isRejected = false;
-                    });
-                    Timer(Duration(seconds: 1), () {
-                      setState(() {
-                        _isAccepted = false;
-                      });
-                    });
-                    print('Accepted');
-                  },
-                  child: Text(
-                    'Accept',
-                    style: TextStyle(color: Color.fromRGBO(0, 0, 0, 1)),
-                  ),
-                ),
-                SizedBox(width: 10),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      _isRejected = true;
-                      _isAccepted = false;
-                    });
-                    Timer(Duration(seconds: 2), () {
-                      setState(() {
-                        _isRejected = false;
-                      });
-                    });
-                    print('Rejected');
-                  },
-                  child: Text(
-                    'Reject',
-                    style: TextStyle(color: Color.fromRGBO(0, 0, 0, 1)),
-                  ),
-                ),
-              ],
-            ),
+Row(
+  mainAxisAlignment: MainAxisAlignment.center,
+  children: [
+    ElevatedButton(
+      onPressed: () {
+        acceptUser(_currentPage);
+        print(_currentPage);
+        print("----------------");
+        setState(() {
+          _isAccepted = true;
+          _isRejected = false;
+        });
+        Timer(Duration(seconds: 1), () {
+          setState(() {
+            _isAccepted = false;
+          });
+        });
+        print('Accepted');
+      },
+      child: Text(
+        'Accept',
+        style: TextStyle(color: Color.fromRGBO(0, 0, 0, 1)),
+      ),
+    ),
+    SizedBox(width: 20), // Adjust spacing between buttons as needed
+    ElevatedButton(
+      onPressed: () {
+        rejectUser(_currentPage);
+        setState(() {
+          _isRejected = true;
+          _isAccepted = false;
+        });
+        Timer(Duration(seconds: 2), () {
+          setState(() {
+            _isRejected = false;
+          });
+        });
+        print('Rejected');
+      },
+      child: Text(
+        'Reject',
+        style: TextStyle(color: Color.fromRGBO(0, 0, 0, 1)),
+      ),
+    ),
+  ],
+),
+
+
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -197,7 +286,7 @@ class _RequestsHandlingState extends State<RequestsHandling> {
         if (_pageController.position.haveDimensions) {
           value = index.toDouble() - (_pageController.page ?? 0);
           value = (value * 0.038).clamp(-1, 1);
-          print("value $value index $index");
+          //print("value $value index $index");
         }
         return Transform.rotate(
           angle: pi * value,
@@ -219,66 +308,64 @@ class _RequestsHandlingState extends State<RequestsHandling> {
                 borderRadius: BorderRadius.circular(30),
                 child: GestureDetector(
                   onTap: () {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    builder: (BuildContext context) {
-      return SingleChildScrollView(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: Container(
-          padding: EdgeInsets.all(16.0),
-          width: double.infinity, // Set width to match screen width
-          decoration: BoxDecoration(
-            color: Color.fromRGBO(255, 255, 255, 1),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '${data.firstName} ${data.lastName}',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              SizedBox(height: 8),
-              Text(
-                'Username: ${data.username}',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.black,
-                ),
-              ),
-              SizedBox(height: 8),
-              Text(
-                'Car Number: ${data.carNumber}',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.black,
-                ),
-              ),
-              SizedBox(height: 8),
-              Text(
-                'Rating: ${data.rating}',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.black,
-                ),
-              ),
-              // Add more information here about the traveler and the user rating
-            ],
-          ),
-        ),
-      );
-    },
-  );
-},
-
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      builder: (BuildContext context) {
+                        return SingleChildScrollView(
+                          padding: EdgeInsets.only(
+                            bottom: MediaQuery.of(context).viewInsets.bottom,
+                          ),
+                          child: Container(
+                            padding: EdgeInsets.all(16.0),
+                            width: double.infinity, // Set width to match screen width
+                            decoration: BoxDecoration(
+                              color: Color.fromRGBO(255, 255, 255, 1),
+                              borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  '${data.firstName} ${data.lastName}',
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  'Username: ${data.username}',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  'Car Number: ${data.carNumber}',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  'Rating: ${data.rating}',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
                   child: Image.asset(
                     data.imageUrl,
                     fit: BoxFit.cover,
@@ -335,6 +422,7 @@ class _RequestsHandlingState extends State<RequestsHandling> {
 }
 
 class DataModel {
+  final String userID;
   final String imageUrl;
   final String username;
   final String firstName;
@@ -343,6 +431,7 @@ class DataModel {
   final double rating;
 
   DataModel({
+    required this.userID,
     required this.imageUrl,
     required this.username,
     required this.firstName,
@@ -350,4 +439,16 @@ class DataModel {
     required this.carNumber,
     required this.rating,
   });
+
+  factory DataModel.fromJson(Map<String, dynamic> json) {
+    return DataModel(
+      userID: json['_id'],
+      imageUrl: 'assets/images/profile3.jpg',
+      username: 'username',
+      firstName: json['email'],
+      lastName: 'lastName',
+      carNumber: 'Unknown',
+      rating: 4.8,
+    );
+  }
 }

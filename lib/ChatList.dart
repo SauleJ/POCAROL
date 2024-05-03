@@ -1,108 +1,151 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'BottomNavigationBar.dart';
+import 'package:http/http.dart' as http;
+import 'LoginPage.dart';
 import 'ChatPage.dart';
 
-class ChatListPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      //--- Top Bar -BEGIN- ---//
-      appBar: AppBar(
-        title: Text('Chats'),
-        backgroundColor: Colors.white,
-      ),
-      //--- Top Bar -END- ---//
-      backgroundColor: Color.fromRGBO(128, 0, 0, 1),
-      //--- Chat List -BEGIN- ---//
-            body: ListView.builder(
-        itemCount: 3, // Number of chat items
-        itemBuilder: (context, index) {
-          return Container(
-            margin: EdgeInsets.all(8.0), 
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10.0),
-            ),
-            child: ChatListItem(
-              iconData: Icons.person_4_outlined,
-              name: 'Chat Name ${index + 1}', //CHAT NAME RANDOMIZER !CHANGE!
-              toCity: 'Destination: Vilnius', //DESTINATION CITY !CHANGE!
-              date: '2024-05-05',
-              //--- Aditional Attributes -BEGIN- ---//
-              lastMessage: 'This is the last message in the chat.',
-              time: '10:30 AM', // Last message time
-              unreadCount: index % 3 == 0 ? 0 : index % 3,
-              //--- Aditional Attributes -END- ---//
-              onTap: () {
-                Navigator.push(context,MaterialPageRoute(builder: (context) => ChatApp()));
-              },
-            ),
-          );
-        },
-      ),
-      //--- Chat List -END- ---//
-      //--- Bottom Navigation -BEGIN- ---//
-      bottomNavigationBar: MyBottomNavigationBar(),
-      //--- Bottom Navigation -END- ---//
+void main() {
+  runApp(MaterialApp(
+    home: ChatListPage(),
+  ));
+}
+
+class Post {
+  final String id;
+  final String fromCity;
+  final String toCity;
+  final String date;
+
+  Post({
+    required this.id,
+    required this.fromCity,
+    required this.toCity,
+    required this.date,
+  });
+
+  factory Post.fromJson(Map<String, dynamic> json) {
+    return Post(
+      id: json['_id'],
+      fromCity: json['fromCity'],
+      toCity: json['toCity'],
+      date: json['date'],
     );
   }
 }
 
-class ChatListItem extends StatelessWidget {
-  final IconData iconData;
-  final String name;
-  final String toCity;
-  final String date;
-  //--- Aditional Attributes -BEGIN- ---//
-  final String lastMessage;
-  final String time;
-  final int unreadCount;
-  //--- Aditional Attributes -END- ---//
-  final VoidCallback onTap;
+class ChatListPage extends StatefulWidget {
+  @override
+  _ChatListPageState createState() => _ChatListPageState();
+}
 
-  const ChatListItem({
-    required this.iconData,
-    required this.name,
-    required this.toCity,
-    required this.date,
-    //--- Aditional Attributes -BEGIN- ---//
-    required this.lastMessage,
-    required this.time,
-    required this.unreadCount,
-    //--- Aditional Attributes -END- ---//
-    required this.onTap,
-  });
+class _ChatListPageState extends State<ChatListPage> {
+  List<Post> posts = [];
 
-//--- Chat List Theme -BEGIN- ---//
+  @override
+  void initState() {
+    super.initState();
+    fetchPostsByUserIdWithTrueStateUsers();
+  }
+
+  Future<void> fetchPostsByUserIdWithTrueStateUsers() async {
+    try {
+      final userData = await getUserByToken(globalToken!);
+      final userId = userData['_id'];
+      final response = await http.get(Uri.parse('http://localhost:3000/getPostsByUserIdWithTrueStateUsers/$userId'));
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = jsonDecode(response.body);
+        setState(() {
+          posts = jsonData.map((postJson) => Post.fromJson(postJson)).toList();
+        });
+      } else {
+        print('Failed to fetch posts: ${response.statusCode}');
+      }
+    } catch (error) {
+      print('Error fetching posts: $error');
+    }
+  }
+
+  Future<Map<String, dynamic>> getUserByToken(String token) async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://localhost:3000/getUserByToken/$token'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> userData = jsonDecode(response.body);
+        return userData;
+      } else {
+        throw Exception('Failed to load user data by token: ${response.statusCode}');
+      }
+    } catch (error) {
+      throw Exception('Failed to fetch user data by token: $error');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      onTap: onTap,
-      leading: Icon(
-        iconData,
-        size: 40,
-        color: Colors.black,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Chats'),
+        backgroundColor: Colors.white,
       ),
-      title: Text(
-        name,
-        style: TextStyle(fontWeight: FontWeight.bold),
-      ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            toCity,
-            style: TextStyle(color: Colors.grey),
-          ),
-          Text(
-            date,
-            style: TextStyle(color: Colors.grey),
-          ),
-        ],
+      backgroundColor: Color.fromRGBO(128, 0, 0, 1),
+      body: ListView.builder(
+        itemCount: posts.length,
+        itemBuilder: (context, index) {
+          final post = posts[index];
+          return Container(
+            margin: EdgeInsets.all(8.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            child: ListTile(
+              leading: Icon(
+                Icons.person_4_outlined,
+                size: 40,
+                color: Colors.black,
+              ),
+              title: Text(
+                post.fromCity,
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    post.toCity,
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                  Text(
+                    post.date,
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ],
+              ),
+              onTap: () async {
+                final userData = await getUserByToken(globalToken!);
+                final senderId = userData['_id'];
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ChatScreen(postId: post.id, senderId: senderId),
+                    ),
+                  );
+                },
+            ),
+          );
+        },
       ),
     );
   }
-      //--- Aditional Attributes -BEGIN- ---//
+}
+
+
+
+ //--- Aditional Attributes -BEGIN- ---//
       // subtitle: Row(
       //   children: [
       //     Expanded(
@@ -129,11 +172,3 @@ class ChatListItem extends StatelessWidget {
       //       )
       //     : SizedBox.shrink(),
       //--- Aditional Attributes -END- ---//
-}
-//--- Chat List Theme -END- ---//
-
-void main() {
-  runApp(MaterialApp(
-    home: ChatListPage(),
-  ));
-}
