@@ -62,6 +62,7 @@ class _RequestsHandlingState extends State<RequestsHandling> {
 
   try {
     final response = await http.get(Uri.parse('http://localhost:3000/getUsersForPost/$post_id'));
+    print(post_id);
     if (response.statusCode == 200) {
       final jsonData = jsonDecode(response.body);
       final List<dynamic> usersJson = jsonData['users'];
@@ -140,143 +141,148 @@ void rejectUser(int index) {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Choose Your travel buddy'),
-        backgroundColor: Colors.white,
-      ),
-      backgroundColor: Color.fromRGBO(128, 0, 0, 1),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 30),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            SizedBox(height: 20),
-            Expanded(
-              child: Stack(
-                children: [
-                  PageView.builder(
-                    itemCount: dataList.length,
-                    physics: const ClampingScrollPhysics(),
-                    controller: _pageController,
-                    itemBuilder: (context, index) {
-                      return carouselView(index);
-                    },
+  return Scaffold(
+    appBar: AppBar(
+      title: Text('Choose Your travel buddy'),
+      backgroundColor: Colors.white,
+    ),
+    backgroundColor: Color.fromRGBO(128, 0, 0, 1),
+    body: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 30),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          SizedBox(height: 20),
+          Expanded(
+            child: dataList.isEmpty // Check if dataList is empty
+                ? Center(
+                    child: Text(
+                      'No applicants',
+                      style: TextStyle(color: Colors.white, fontSize: 20),
+                    ),
+                  )
+                : Stack(
+                    children: [
+                      PageView.builder(
+                        itemCount: dataList.length,
+                        physics: const ClampingScrollPhysics(),
+                        controller: _pageController,
+                        itemBuilder: (context, index) {
+                          return carouselView(index);
+                        },
+                      ),
+                      if (_isAccepted)
+                        Center(
+                          child: AnimatedContainer(
+                            duration: Duration(seconds: 2),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.check_circle_outline, color: Colors.green, size: 100),
+                                Text('Added to trip', style: TextStyle(color: Colors.white)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      if (_isRejected)
+                        Center(
+                          child: AnimatedContainer(
+                            duration: Duration(seconds: 2),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.cancel_outlined, color: Colors.red, size: 100),
+                                Text('Rejected', style: TextStyle(color: Colors.white)),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
-                  if (_isAccepted)
-                    Center(
-                      child: AnimatedContainer(
-                        duration: Duration(seconds: 2),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.check_circle_outline, color: Colors.green, size: 100),
-                            Text('Added to trip', style: TextStyle(color: Colors.white)),
-                          ],
-                        ),
-                      ),
-                    ),
-                  if (_isRejected)
-                    Center(
-                      child: AnimatedContainer(
-                        duration: Duration(seconds: 2),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.cancel_outlined, color: Colors.red, size: 100),
-                            Text('Rejected', style: TextStyle(color: Colors.white)),
-                          ],
-                        ),
-                      ),
-                    ),
-                ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  acceptUser(_currentPage);
+                  print(_currentPage);
+                  print("----------------");
+                  setState(() {
+                    _isAccepted = true;
+                    _isRejected = false;
+                  });
+                  Timer(Duration(seconds: 1), () {
+                    setState(() {
+                      _isAccepted = false;
+                    });
+                  });
+                  print('Accepted');
+                },
+                child: Text(
+                  'Accept',
+                  style: TextStyle(color: Color.fromRGBO(0, 0, 0, 1)),
+                ),
               ),
-            ),
-Row(
-  mainAxisAlignment: MainAxisAlignment.center,
-  children: [
-    ElevatedButton(
-      onPressed: () {
-        acceptUser(_currentPage);
-        print(_currentPage);
-        print("----------------");
-        setState(() {
-          _isAccepted = true;
-          _isRejected = false;
-        });
-        Timer(Duration(seconds: 1), () {
-          setState(() {
-            _isAccepted = false;
-          });
-        });
-        print('Accepted');
-      },
-      child: Text(
-        'Accept',
-        style: TextStyle(color: Color.fromRGBO(0, 0, 0, 1)),
+              SizedBox(width: 20), // Adjust spacing between buttons as needed
+              ElevatedButton(
+                onPressed: () {
+                  rejectUser(_currentPage);
+                  setState(() {
+                    _isRejected = true;
+                    _isAccepted = false;
+                  });
+                  Timer(Duration(seconds: 2), () {
+                    setState(() {
+                      _isRejected = false;
+                    });
+                  });
+                  print('Rejected');
+                },
+                child: Text(
+                  'Reject',
+                  style: TextStyle(color: Color.fromRGBO(0, 0, 0, 1)),
+                ),
+              ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  _pageController.previousPage(
+                    duration: Duration(milliseconds: 500),
+                    curve: Curves.easeInOut,
+                  );
+                },
+                child: Icon(Icons.arrow_back),
+                style: ElevatedButton.styleFrom(
+                  shape: CircleBorder(),
+                  padding: EdgeInsets.all(20),
+                ),
+              ),
+              SizedBox(width: 10),
+              ElevatedButton(
+                onPressed: () {
+                  _pageController.nextPage(
+                    duration: Duration(milliseconds: 500),
+                    curve: Curves.easeInOut,
+                  );
+                },
+                child: Icon(Icons.arrow_forward),
+                style: ElevatedButton.styleFrom(
+                  shape: CircleBorder(),
+                  padding: EdgeInsets.all(20),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     ),
-    SizedBox(width: 20), // Adjust spacing between buttons as needed
-    ElevatedButton(
-      onPressed: () {
-        rejectUser(_currentPage);
-        setState(() {
-          _isRejected = true;
-          _isAccepted = false;
-        });
-        Timer(Duration(seconds: 2), () {
-          setState(() {
-            _isRejected = false;
-          });
-        });
-        print('Rejected');
-      },
-      child: Text(
-        'Reject',
-        style: TextStyle(color: Color.fromRGBO(0, 0, 0, 1)),
-      ),
-    ),
-  ],
-),
-
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    _pageController.previousPage(
-                      duration: Duration(milliseconds: 500),
-                      curve: Curves.easeInOut,
-                    );
-                  },
-                  child: Icon(Icons.arrow_back),
-                  style: ElevatedButton.styleFrom(
-                    shape: CircleBorder(),
-                    padding: EdgeInsets.all(20),
-                  ),
-                ),
-                SizedBox(width: 10),
-                ElevatedButton(
-                  onPressed: () {
-                    _pageController.nextPage(
-                      duration: Duration(milliseconds: 500),
-                      curve: Curves.easeInOut,
-                    );
-                  },
-                  child: Icon(Icons.arrow_forward),
-                  style: ElevatedButton.styleFrom(
-                    shape: CircleBorder(),
-                    padding: EdgeInsets.all(20),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  );
+}
 
   Widget carouselView(int index) {
     return AnimatedBuilder(
@@ -366,7 +372,7 @@ Row(
                       },
                     );
                   },
-                  child: Image.asset(
+                  child: Image.network(
                     data.imageUrl,
                     fit: BoxFit.cover,
                   ),
@@ -443,12 +449,12 @@ class DataModel {
   factory DataModel.fromJson(Map<String, dynamic> json) {
     return DataModel(
       userID: json['_id'],
-      imageUrl: 'assets/images/profile3.jpg',
-      username: 'username',
-      firstName: json['email'],
-      lastName: 'lastName',
+      imageUrl: json['photo'],
+      username: json['username'],
+      firstName: json['name'],
+      lastName: json['lastname'],
       carNumber: 'Unknown',
-      rating: 4.8,
+      rating: json['rating'],
     );
   }
 }
