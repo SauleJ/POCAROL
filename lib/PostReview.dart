@@ -24,37 +24,35 @@ class _DestinationDetailPageState extends State<DestinationDetailPage> {
     fetchUser();
   }
 
-  // Fetch user that creted the post 
+  // Fetch user that created the post
   void fetchUser() async {
-  try {
-    final userData = await fetchUserById(widget.destination.createdBy);
-    if (userData != null) {
-      setState(() {
-        userName = userData['email'];
-      });
-    } else {
-      setState(() {
-        userName = "User data not available";
-      });
+    try {
+      final userData = await fetchUserById(widget.destination.createdBy);
+      if (mounted) {
+        setState(() {
+          userName = userData?['email'] ?? "User data not available";
+        });
+      }
+    } catch (error) {
+      print(error);
+      if (mounted) {
+        setState(() {
+          userName = "Failed to fetch user data";
+        });
+      }
     }
-  } catch (error) {
-    print(error);
-    setState(() {
-      userName = "Failed to fetch user data";
-    });
   }
-}
 
   // Fetch current user data
-Future<Map<String, dynamic>?> fetchCurrentUser() async {
-  try {
-    final userCurrentData = await getUserByToken(globalToken!);
-    return userCurrentData;
-  } catch (error) {
-    print(error);
-    return null; // Indicate error or missing data
+  Future<Map<String, dynamic>?> fetchCurrentUser() async {
+    try {
+      final userCurrentData = await getUserByToken(globalToken!);
+      return userCurrentData;
+    } catch (error) {
+      print(error);
+      return null; // Indicate error or missing data
+    }
   }
-}
 
   Future<Map<String, dynamic>> getUserByToken(String token) async {
     try {
@@ -96,80 +94,97 @@ Future<Map<String, dynamic>?> fetchCurrentUser() async {
     }
   }
 
-Future<void> savePostRequest(String postID, bool userState) async {
-  try {
-    // Fetch current user data
-    Map<String, dynamic>? userData = await fetchCurrentUser();
-    
-    // Check if userData is not null and contains user ID
-    if (userData != null && userData.containsKey('_id')) {
-      String userID = userData['_id'];
-      print(userID);
-      print("-------------------");
-      
-      // Construct the request body
-      var regBody = {
-        'postID': postID,
-        'users': [{'userID': userID, 'state': userState}],
-      };
+  Future<void> savePostRequest(String postID, bool userState) async {
+    try {
+      // Fetch current user data
+      Map<String, dynamic>? userData = await fetchCurrentUser();
 
-      // Send the POST request
-      final response = await http.post(
-        Uri.parse('http://localhost:3000/savePostRequest'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(regBody),
-      );
+      // Check if userData is not null and contains user ID
+      if (userData != null && userData.containsKey('_id')) {
+        String userID = userData['_id'];
 
-      if (response.statusCode == 200) {
-        print('Post request saved successfully!');
-        showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: Text('Applied Successfully'),
-                content: Text('You have successfully applied to this post.'),
-                actions: <Widget>[
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: Text('OK'),
-                  ),
-                ],
-              );
-            },
-          );
-        // Handle success scenario (e.g., show a confirmation message)
-      } else if (response.statusCode == 409){
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: Text('Already Applied'),
-                content: Text('You have already applied to this post.'),
-                actions: <Widget>[
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: Text('OK'),
-                  ),
-                ],
-              );
-            },
-          );
+        if (widget.destination.createdBy == userID) {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('Not allowed'),
+                  content: Text('You cannot apply to your post.'),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Text('OK'),
+                    ),
+                  ],
+                );
+              },
+            );
+            print("You created this post");
         } else {
-          // Handle other error scenarios (e.g., show an error message)
-          print('Error saving post request: ${response.statusCode}');
+
+          // Construct the request body
+          var regBody = {
+            'postID': postID,
+            'users': [{'userID': userID, 'state': userState}],
+          };
+
+          // Send the POST request
+          final response = await http.post(
+            Uri.parse('http://localhost:3000/savePostRequest'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(regBody),
+          );
+          print(response.statusCode);
+
+          if (response.statusCode == 200) {
+              showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('Applied Suceesfully'),
+                  content: Text('You applied to this post'),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Text('OK'),
+                    ),
+                  ],
+                );
+              },
+            );
+            print('Post request saved successfully!');
+          } else if (response.statusCode == 409) {
+              showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('Already applied'),
+                  content: Text('You have already applied'),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Text('OK'),
+                    ),
+                  ],
+                );
+              },
+            );
+              print("Already applied");
+          } else {
+            print('Error saving post request: ${response.statusCode}');
+          }
         }
+      }
+    } catch (error) {
+      print('Error sending POST request');
     }
-  } catch (error) {
-    print('Error sending POST request: $error');
-    // Handle network or other errors
   }
-}
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -245,15 +260,13 @@ Future<void> savePostRequest(String postID, bool userState) async {
                 ElevatedButton.icon(
                   onPressed: () {
                     print("presseddd");
-                    savePostRequest(
-                      widget.destination.id, false
-                    );
-                    Navigator.pop(context);
+                    savePostRequest(widget.destination.id, false);
+                    //Navigator.pop(context);
                   },
                   icon: Icon(Icons.check, color: Colors.green),
                   label: Text("OK", style: TextStyle(color: Colors.black)),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white, 
+                    backgroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20.0),
                     ),
@@ -275,7 +288,7 @@ Future<void> savePostRequest(String postID, bool userState) async {
           children: [
             Icon(
               iconData,
-              color: Colors.black, 
+              color: Colors.black,
             ),
             SizedBox(width: 8.0),
             Text(label, style: TextStyle(fontSize: 18.0)),

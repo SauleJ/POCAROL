@@ -63,24 +63,11 @@ class MyBottomNavigationBar extends StatelessWidget {
               Navigator.push(context,MaterialPageRoute(builder: (context) => UserPostsPage()));
             case 4:
               //Profile
-              Navigator.push(context,MaterialPageRoute(builder: (context) => 
-              ProfilePage(profile: myProfile),),);
+              Navigator.push(context,MaterialPageRoute(builder: (context) => ProfilePage()));
           }
         },
     ),
     );
   }
 
-//--- Temporary Profile Data -BEGIN- ---//
-  Profile myProfile = Profile(
-  profilePhotoUrl: 'https://via.placeholder.com/150',
-  username: 'user123',
-  firstName: 'John',
-  lastName: 'Doe',
-  // email: 'john.doe@example.com',
-  // phoneNumber: '123-456-7890',
-  carNumber: 'ABC123',
-  rating: 4.5,
-);
-//--- Temporary Profile Data -END- ---//
 }
