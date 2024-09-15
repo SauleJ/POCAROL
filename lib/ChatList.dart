@@ -142,33 +142,3 @@ class _ChatListPageState extends State<ChatListPage> {
     );
   }
 }
-
-
-
- //--- Aditional Attributes -BEGIN- ---//
-      // subtitle: Row(
-      //   children: [
-      //     Expanded(
-      //       child: Text(
-      //         lastMessage,
-      //         overflow: TextOverflow.ellipsis,
-      //       ),
-      //     ),
-      //     SizedBox(width: 10),
-      //     Text(
-      //       time,
-      //       style: TextStyle(color: Colors.grey),
-      //     ),
-      //   ],
-      // ),
-      // trailing: unreadCount > 0
-      //     ? CircleAvatar(
-      //         backgroundColor: Colors.blue,
-      //         radius: 12,
-      //         child: Text(
-      //           unreadCount.toString(),
-      //           style: TextStyle(color: Colors.white, fontSize: 12),
-      //         ),
-      //       )
-      //     : SizedBox.shrink(),
-      //--- Aditional Attributes -END- ---//
