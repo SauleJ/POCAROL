@@ -1,5 +1,48 @@
 include: package:flutter_lints/flutter.yaml
 
+dart_code_metrics:
+  metrics:
+    # Halstead metrics (specific options for measuring complexity at a deeper level)
+    halstead: 150
+
+    # # Complexity-related metrics
+    cyclomatic-complexity: 10  # Threshold for cyclomatic complexity (higher values indicate more complex code)
+    maintainability-index: 60  # Threshold for maintainability index (higher values indicate more maintainable code)
+    lines-of-code: 80          # Threshold for lines of code
+    maximum-nesting-level: 5
+    number-of-parameters: 4
+    number-of-used-widgets: 20
+    source-lines-of-code: 50   #SLOC
+    widgets-nesting-level: 10  #The depths of widgets used inside a build method.
+
+
+    # #CLASS
+    coupling-between-object-classes: 12
+    depth-of-inheritance-tree: 5
+    number-of-added-methods: 10
+    number-of-implemented-interfaces: 5
+    number-of-methods: 10
+    number-of-overridden-methods: 10
+    response-for-class: 55
+    tight-class-cohesion: 0.33
+    weight-of-class: 0.33
+    weighted-methods-per-class: 35
+
+
+    # #FILE
+    number-of-external-imports: 5
+    number-of-imports: 10
+
+      # Exclude specific files or folders from the metrics analysis
+    # metrics-exclude:
+    # - lib/BottomNavigationBar.dart  # Exclude a specific file
+    # - lib/UserPostsPage.dart  # Exclude a specific file
+    # - lib/RegistrationPage.dart  # Exclude a specific file
+    # - lib/ProfilePage.dart  # Exclude a specific file
+    # - lib/main.dart  # Exclude a specific file
+    # - lib/ChatList.dart  # Exclude a specific file
+
+
 linter:
   rules:
     avoid_print: false

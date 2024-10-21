@@ -100,7 +100,7 @@ class _DestinationDetailPageState extends State<DestinationDetailPage> {
       Map<String, dynamic>? userData = await fetchCurrentUser();
 
       // Check if userData is not null and contains user ID
-      if (userData != null && userData.containsKey('_id')) {
+      if (userData != null && userData.containsKey('_id')) { ///nereikia tikrinti del null
         String userID = userData['_id'];
 
         if (widget.destination.createdBy == userID) {
