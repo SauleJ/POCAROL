@@ -9,66 +9,22 @@ class PostCreationPage extends StatefulWidget {
 }
 
 class _PostCreationPageState extends State<PostCreationPage> {
-  TextEditingController descriptionController = TextEditingController();
-  TextEditingController fromCityController = TextEditingController();
-  TextEditingController toCityController = TextEditingController();
-  TextEditingController dateController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
+  final TextEditingController fromCityController = TextEditingController();
+  final TextEditingController toCityController = TextEditingController();
+  final TextEditingController dateController = TextEditingController();
+  final TextEditingController priceController = TextEditingController();
+  
   int? selectedPeopleAmount;
-  TextEditingController priceController = TextEditingController();
 
-  void createPost() async {
-    if(descriptionController.text.isNotEmpty && fromCityController.text.isNotEmpty && toCityController.text.isNotEmpty && dateController.text.isNotEmpty && priceController.text.isNotEmpty ){
-        
-      Map<String, String> regBody = {
-      "description": descriptionController.text,
-      "date": dateController.text,
-      "fromCity": fromCityController.text,
-      "toCity": toCityController.text,
-      "peopleAmount": selectedPeopleAmount.toString(),
-      "priceAmount": priceController.text,
-    };
-
-    // Check if globalToken is not null, then include it in the request body
-    if (globalToken != null) {
-      regBody['token'] = globalToken!;
-    }
-
-
-    var response = await http.post(
-      Uri.parse('http://localhost:3000/savePost'),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode(regBody),
-    );
-
-    var jsonResponse = jsonDecode(response.body);
-
-    print(jsonResponse['status']);
-
-    if (jsonResponse['status']) {
-      print('Post created successfully');
-      
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text("Post Created"),
-            content: Text("You have created a post."),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop();
-                },
-                child: Text("OK"),
-              ),
-            ],
-          );
-        },
-      );
-    } else {
-      print('Error creating post');
-    }
-    }
+  @override
+  void dispose() {
+    descriptionController.dispose();
+    fromCityController.dispose();
+    toCityController.dispose();
+    dateController.dispose();
+    priceController.dispose();
+    super.dispose();
   }
 
   @override
@@ -85,101 +41,9 @@ class _PostCreationPageState extends State<PostCreationPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              _buildPostForm(),
               SizedBox(height: 16.0),
-              Container(
-                padding: EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16.0),
-                ),
-                child: Column(
-                  children: [
-                    buildTextFieldWithIcon(
-                      fromCityController,
-                      'From',
-                      Icons.location_on,
-                      isFirst: true,
-                    ),
-                    SizedBox(height: 16.0),
-                    buildTextFieldWithIcon(
-                      toCityController,
-                      'To',
-                      Icons.location_on,
-                    ),
-                    SizedBox(height: 16.0),
-                    buildTextFieldWithIcon(
-                      dateController,
-                      'Date',
-                      Icons.date_range,
-                    ),
-                    SizedBox(height: 16.0),
-                    buildPeopleAmountDropdown(),
-                    SizedBox(height: 16.0),
-                    buildTextFieldWithIcon(
-                      priceController,
-                      'Price',
-                      Icons.attach_money,
-                    ),
-                    SizedBox(height: 16.0),
-                    buildTextFieldWithIcon(
-                      descriptionController,
-                      'Description',
-                      Icons.description,
-                      maxLines: 4,
-                      verticalAlignment: CrossAxisAlignment.start,
-                      isLast: true,
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 16.0),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: SizedBox(
-                      width: 80.0,
-                      height: 50.0,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                        ),
-                        child: Icon(Icons.close),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: SizedBox(
-                      width: 80.0,
-                      height: 50.0,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          if (_validateMandatoryFields()) {
-                            createPost();
-                            _createPost();
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Please fill all fields'),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                        ),
-                        child: Icon(Icons.check),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              _buildActionButtons(),
             ],
           ),
         ),
@@ -187,15 +51,125 @@ class _PostCreationPageState extends State<PostCreationPage> {
     );
   }
 
-  Widget buildTextFieldWithIcon(
-    TextEditingController controller,
-    String hintText,
-    IconData icon, {
-    int maxLines = 1,
-    CrossAxisAlignment verticalAlignment = CrossAxisAlignment.center,
-    bool isFirst = false,
-    bool isLast = false,
-  }) {
+  Widget _buildPostForm() {
+    return Container(
+      padding: EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16.0),
+      ),
+      child: Column(
+        children: [
+          buildTextFieldWithIcon(fromCityController, 'From', Icons.location_on, isFirst: true),
+          SizedBox(height: 16.0),
+          buildTextFieldWithIcon(toCityController, 'To', Icons.location_on),
+          SizedBox(height: 16.0),
+          buildTextFieldWithIcon(dateController, 'Date', Icons.date_range),
+          SizedBox(height: 16.0),
+          buildPeopleAmountDropdown(),
+          SizedBox(height: 16.0),
+          buildTextFieldWithIcon(priceController, 'Price', Icons.attach_money),
+          SizedBox(height: 16.0),
+          buildTextFieldWithIcon(descriptionController, 'Description', Icons.description, maxLines: 4, verticalAlignment: CrossAxisAlignment.start, isLast: true),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _buildActionButton(Icons.close, Colors.red, () => Navigator.pop(context)),
+        _buildActionButton(Icons.check, Colors.green, _handleCreatePost),
+      ],
+    );
+  }
+
+  Widget _buildActionButton(IconData icon, Color color, VoidCallback onPressed) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: SizedBox(
+        width: 80.0,
+        height: 50.0,
+        child: ElevatedButton(
+          onPressed: onPressed,
+          style: ElevatedButton.styleFrom(backgroundColor: color),
+          child: Icon(icon),
+        ),
+      ),
+    );
+  }
+
+  void _handleCreatePost() {
+    if (_validateMandatoryFields()) {
+      createPost();
+    } else {
+      _showSnackBar('Please fill all fields', Colors.red);
+    }
+  }
+
+  bool _validateMandatoryFields() {
+    return fromCityController.text.isNotEmpty &&
+        toCityController.text.isNotEmpty &&
+        dateController.text.isNotEmpty &&
+        priceController.text.isNotEmpty;
+  }
+
+  void createPost() async {
+    final regBody = {
+      "description": descriptionController.text,
+      "date": dateController.text,
+      "fromCity": fromCityController.text,
+      "toCity": toCityController.text,
+      "peopleAmount": selectedPeopleAmount.toString(),
+      "priceAmount": priceController.text,
+      "token": globalToken ?? '',
+    };
+
+    var response = await http.post(
+      Uri.parse('http://localhost:3000/savePost'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(regBody),
+    );
+
+    var jsonResponse = jsonDecode(response.body);
+
+    if (jsonResponse['status']) {
+      _showPostCreationDialog();
+    } else {
+      print('Error creating post');
+    }
+  }
+
+  void _showPostCreationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Post Created"),
+          content: Text("You have created a post."),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+              },
+              child: Text("OK"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showSnackBar(String message, Color color) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: color),
+    );
+  }
+
+  Widget buildTextFieldWithIcon(TextEditingController controller, String hintText, IconData icon, {int maxLines = 1, CrossAxisAlignment verticalAlignment = CrossAxisAlignment.center, bool isFirst = false, bool isLast = false}) {
     return TextField(
       controller: controller,
       maxLines: maxLines,
@@ -234,21 +208,9 @@ class _PostCreationPageState extends State<PostCreationPage> {
           isExpanded: true,
           value: selectedPeopleAmount,
           items: [
-            DropdownMenuItem<int?>(
-              value: null,
-              child:
-                  Text('People Amount', style: TextStyle(color: Colors.black.withOpacity(0.5))),
-            ),
+            DropdownMenuItem<int?>(value: null, child: Text('People Amount', style: TextStyle(color: Colors.black.withOpacity(0.5)))),
             for (int i = 1; i <= 5; i++)
-              DropdownMenuItem<int?>(
-                value: i,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(i.toString()),
-                  ],
-                ),
-              ),
+              DropdownMenuItem<int?>(value: i, child: Text(i.toString())),
           ],
           onChanged: (int? value) {
             setState(() {
@@ -259,38 +221,8 @@ class _PostCreationPageState extends State<PostCreationPage> {
       ),
     );
   }
-
-  bool _validateMandatoryFields() {
-    return fromCityController.text.isNotEmpty &&
-        toCityController.text.isNotEmpty &&
-        dateController.text.isNotEmpty &&
-        priceController.text.isNotEmpty;
-  }
-
-  void _createPost() {
-    // Perform post creation action here
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Post created successfully'),
-        backgroundColor: Colors.green,
-      ),
-    );
-    Navigator.of(context).pop();
-  }
-
-  @override
-  void dispose() {
-    descriptionController.dispose();
-    fromCityController.dispose();
-    toCityController.dispose();
-    dateController.dispose();
-    priceController.dispose();
-    super.dispose();
-  }
 }
 
 void main() {
-  runApp(MaterialApp(
-    home: PostCreationPage(),
-  ));
+  runApp(MaterialApp(home: PostCreationPage()));
 }
