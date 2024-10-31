@@ -34,13 +34,13 @@ dart_code_metrics:
     number-of-imports: 10
 
       # Exclude specific files or folders from the metrics analysis
-    # metrics-exclude:
-    # - lib/BottomNavigationBar.dart  # Exclude a specific file
-    # - lib/UserPostsPage.dart  # Exclude a specific file
-    # - lib/RegistrationPage.dart  # Exclude a specific file
-    # - lib/ProfilePage.dart  # Exclude a specific file
-    # - lib/main.dart  # Exclude a specific file
-    # - lib/ChatList.dart  # Exclude a specific file
+    metrics-exclude:
+    - lib/BottomNavigationBar.dart  # Exclude a specific file
+    - lib/UserPostsPage.dart  # Exclude a specific file
+    - lib/RequestsHandling.dart  # Exclude a specific file
+    - lib/ProfilePage.dart  # Exclude a specific file
+    - lib/main.dart  # Exclude a specific file
+    - lib/ChatList.dart  # Exclude a specific file
 
 
 linter:
@@ -52,3 +52,8 @@ linter:
     prefer_final_fields: false
     unnecessary_breaks: true
     use_key_in_widget_constructors: false
+
+
+#command
+# dart run dart_code_metrics:metrics analyze lib/ --reporter=console-verbose
+
