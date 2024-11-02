@@ -94,97 +94,78 @@ class _DestinationDetailPageState extends State<DestinationDetailPage> {
     }
   }
 
-  Future<void> savePostRequest(String postID, bool userState) async {
-    try {
-      // Fetch current user data
-      Map<String, dynamic>? userData = await fetchCurrentUser();
-
-      // Check if userData is not null and contains user ID
-      if (userData != null && userData.containsKey('_id')) { ///nereikia tikrinti del null
-        String userID = userData['_id'];
-
-        if (widget.destination.createdBy == userID) {
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: Text('Not allowed'),
-                  content: Text('You cannot apply to your post.'),
-                  actions: <Widget>[
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: Text('OK'),
-                    ),
-                  ],
-                );
-              },
-            );
-            print("You created this post");
-        } else {
-
-          // Construct the request body
-          var regBody = {
-            'postID': postID,
-            'users': [{'userID': userID, 'state': userState}],
-          };
-
-          // Send the POST request
-          final response = await http.post(
-            Uri.parse('http://localhost:3000/savePostRequest'),
-            headers: {'Content-Type': 'application/json'},
-            body: jsonEncode(regBody),
-          );
-          print(response.statusCode);
-
-          if (response.statusCode == 200) {
-              showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: Text('Applied Suceesfully'),
-                  content: Text('You applied to this post'),
-                  actions: <Widget>[
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: Text('OK'),
-                    ),
-                  ],
-                );
-              },
-            );
-            print('Post request saved successfully!');
-          } else if (response.statusCode == 409) {
-              showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: Text('Already applied'),
-                  content: Text('You have already applied'),
-                  actions: <Widget>[
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: Text('OK'),
-                    ),
-                  ],
-                );
-              },
-            );
-              print("Already applied");
-          } else {
-            print('Error saving post request: ${response.statusCode}');
-          }
-        }
-      }
-    } catch (error) {
-      print('Error sending POST request');
+Future<void> savePostRequest(String postID, bool userState) async {
+  try {
+    Map<String, dynamic> userData = await fetchCurrentUser() as Map<String, dynamic>;
+    String userID = userData['_id'];
+    
+    if (_isPostOwner(userID)) {
+      _showDialog('Not allowed', 'You cannot apply to your post.');
+      return;
     }
+
+    var requestBody = _constructRequestBody(postID, userID, userState);
+    await _sendPostRequest(requestBody);
+
+  } catch (error) {
+    print('Error sending POST request: $error');
   }
+}
+
+bool _isPostOwner(String userID) {
+  return widget.destination.createdBy == userID;
+}
+
+Map<String, dynamic> _constructRequestBody(String postID, String userID, bool userState) {
+  return {
+    'postID': postID,
+    'users': [
+      {'userID': userID, 'state': userState}
+    ],
+  };
+}
+
+Future<void> _sendPostRequest(Map<String, dynamic> requestBody) async {
+  final response = await http.post(
+    Uri.parse('http://localhost:3000/savePostRequest'),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode(requestBody),
+  );
+
+  switch (response.statusCode) {
+    case 200:
+      _showDialog('Applied Successfully', 'You applied to this post');
+      print('Post request saved successfully!');
+      break;
+    case 409:
+      _showDialog('Already applied', 'You have already applied');
+      print('Already applied');
+      break;
+    default:
+      print('Error saving post request: ${response.statusCode}');
+      break;
+  }
+}
+
+void _showDialog(String title, String content) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text(title),
+        content: Text(content),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text('OK'),
+          ),
+        ],
+      );
+    },
+  );
+}
 
   @override
   Widget build(BuildContext context) {
